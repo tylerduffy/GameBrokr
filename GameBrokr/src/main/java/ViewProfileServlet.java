@@ -27,11 +27,11 @@ import javabeans.BettorBean;
 import javabeans.WagerBean;
 
 /**
- * Servlet implementation class ViewBettorServlet
+ * Servlet implementation class ViewProfileServlet
  */
-@WebServlet(name = "ViewBettorServlet",
-		urlPatterns = "/viewbettor")
-public class ViewBettorServlet extends HttpServlet {
+@WebServlet(name = "ViewProfileServlet",
+			urlPatterns = "/profile")
+public class ViewProfileServlet extends HttpServlet {
 	
 	Datastore datastore;
 	KeyFactory bettorKeyFactory;
@@ -41,61 +41,51 @@ public class ViewBettorServlet extends HttpServlet {
 	 * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse response)
 	 */
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		Key bettorKey = bettorKeyFactory.newKey(userService.getCurrentUser().getUserId());
 		
-		if (request.getParameter("bettor_id") != null) {
-			String entID = request.getParameter("bettor_id");
-			Key bettorKey = bettorKeyFactory.newKey(entID);
-			
-			Entity bettor = datastore.get(bettorKey);
-			
-			if (bettor != null) {
-				BettorBean user = new BettorBean();
-				user.setFirstname(bettor.getString("firstname"));
-				user.setLastname(bettor.getString("lastname"));
-				user.setUsername(bettor.getString("username"));
-				user.setWin(String.valueOf(bettor.getValue("win").get()));
-				user.setLoss(String.valueOf(bettor.getValue("loss").get()));
-				user.setBank(String.valueOf(bettor.getValue("bank").get()));
-				
-				Query<Entity> query = Query.newEntityQueryBuilder().setKind("Wager")
-						.setFilter(PropertyFilter.eq("bettor", bettorKey))
-						.setOrderBy(OrderBy.desc("date"))
-						.build();
-				
-				QueryResults<Entity> results = datastore.run(query);
-				
-				ArrayList<WagerBean> openWagers = new ArrayList<WagerBean>();
-				ArrayList<WagerBean> closedWagers = new ArrayList<WagerBean>();
-				
-				if (results.hasNext()) {
-					results.forEachRemaining((result) -> {
-						WagerBean bean = new WagerBean();
-						bean.setMatchup(getMatchupString(result));
-						bean.setMatchupLink(getMatchupLink(result));
-						bean.setSelection(getPick(result));
-						if (result.getBoolean("resolved")) {
-							bean.setResult(getResultReport(result));
-							closedWagers.add(bean);
-						} else {
-							bean.setAmount(getWager(result));
-							openWagers.add(bean);
-						}
-					});
+		Entity bettor = datastore.get(bettorKey);
+		if (bettor == null) {
+			response.sendRedirect("/register");
+		}
+		
+		BettorBean user = new BettorBean();
+		user.setFirstname(bettor.getString("firstname"));
+		user.setLastname(bettor.getString("lastname"));
+		user.setUsername(bettor.getString("username"));
+		user.setWin(String.valueOf(bettor.getValue("win").get()));
+		user.setLoss(String.valueOf(bettor.getValue("loss").get()));
+		user.setBank(String.valueOf(bettor.getValue("bank").get()));
+		
+		Query<Entity> query = Query.newEntityQueryBuilder().setKind("Wager")
+				.setFilter(PropertyFilter.eq("bettor", bettorKey))
+				.setOrderBy(OrderBy.desc("date"))
+				.build();
+		
+		QueryResults<Entity> results = datastore.run(query);
+		
+		ArrayList<WagerBean> openWagers = new ArrayList<WagerBean>();
+		ArrayList<WagerBean> closedWagers = new ArrayList<WagerBean>();
+		
+		if (results.hasNext()) {
+			results.forEachRemaining((result) -> {
+				WagerBean bean = new WagerBean();
+				bean.setMatchup(getMatchupString(result));
+				bean.setMatchupLink(getMatchupLink(result));
+				bean.setSelection(getPick(result));
+				if (result.getBoolean("resolved")) {
+					bean.setResult(getResultReport(result));
+					closedWagers.add(bean);
+				} else {
+					bean.setAmount(getWager(result));
+					openWagers.add(bean);
 				}
-				
-				request.setAttribute("bettor", user);
-				request.setAttribute("openWagers", openWagers);
-				request.setAttribute("closedWagers", closedWagers);
-			    request.getRequestDispatcher("/WEB-INF/jsp/profile.jsp").forward(request, response);
-				
-			} else {
-				request.setAttribute("errorMsg", "Given User ID did not match an account. Try Again.");
-			    request.getRequestDispatcher("/WEB-INF/jsp/error.jsp").forward(request, response);
-			}
-		} else {
-			request.setAttribute("errorMsg", "No User ID given. Try Again.");
-		    request.getRequestDispatcher("/WEB-INF/jsp/error.jsp").forward(request, response);
-		}		
+			});
+		}
+		
+		request.setAttribute("bettor", user);
+		request.setAttribute("openWagers", openWagers);
+		request.setAttribute("closedWagers", closedWagers);
+	    request.getRequestDispatcher("/WEB-INF/jsp/profile.jsp").forward(request, response);
 	}
 
 	/**

@@ -9,6 +9,8 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.google.appengine.api.users.UserService;
+import com.google.appengine.api.users.UserServiceFactory;
 import com.google.cloud.Timestamp;
 import com.google.cloud.datastore.Datastore;
 import com.google.cloud.datastore.DatastoreOptions;
@@ -29,15 +31,18 @@ public class PlaceBetServlet extends HttpServlet {
 	KeyFactory keyFactory;
 	KeyFactory bettorKeyFactory;
 	KeyFactory contestKeyFactory;
+	UserService userService;
 
 	/**
 	 * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse response)
 	 */
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		PrintWriter out = response.getWriter();
-		out.println("Oops insufficient funds! Please return to the home page.");
-		out.println("<br><a href=\"../index.jsp\">Go Home</a>");
-		out.close();
+		String errMsg = "No bet was placed. Unknown error. Please try again.";
+		if (request.getParameter("err").equals("funds")) {
+			errMsg = "Insufficient Funds! Please try again.";
+		}
+		request.setAttribute("errorMsg", errMsg);
+	    request.getRequestDispatcher("/WEB-INF/jsp/error.jsp").forward(request, response);
 	}
 
 	/**
@@ -45,9 +50,13 @@ public class PlaceBetServlet extends HttpServlet {
 	 */
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		long amount = Long.parseLong(request.getParameter("wageramount"));
-		Key bettorKey = getBettorKey(request.getParameter("userid"));
+		Key bettorKey = bettorKeyFactory.newKey(userService.getCurrentUser().getUserId());
 		
 		Entity bettor = datastore.get(bettorKey);
+		if (bettor == null) {
+			response.sendRedirect("/register");
+		}
+		
 		long bank = (long) bettor.getValue("bank").get();
 		
 		if (bank > amount) {
@@ -65,7 +74,7 @@ public class PlaceBetServlet extends HttpServlet {
 					.build();
 			
 			datastore.put(wagerEntry);
-			response.sendRedirect("/wagers");
+			response.sendRedirect("/wagers?err=funds");
 		}
 		doGet(request, response);
 	}
@@ -77,11 +86,7 @@ public class PlaceBetServlet extends HttpServlet {
 		keyFactory = datastore.newKeyFactory().setKind("Wager");
 		bettorKeyFactory = datastore.newKeyFactory().setKind("Bettor");
 		contestKeyFactory = datastore.newKeyFactory().setKind("Contest");
-	}
-	
-	private Key getBettorKey(String bettorid) {
-		long id = Long.parseLong(bettorid);
-		return bettorKeyFactory.newKey(id);
+		userService = UserServiceFactory.getUserService();
 	}
 	
 	private Key getContestKey(String contestid) {

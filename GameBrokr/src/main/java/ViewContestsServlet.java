@@ -1,5 +1,6 @@
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.Date;
 
 import javax.servlet.ServletException;
@@ -18,6 +19,8 @@ import com.google.cloud.datastore.QueryResults;
 import com.google.cloud.datastore.StructuredQuery.OrderBy;
 import com.google.cloud.datastore.StructuredQuery.PropertyFilter;
 
+import javabeans.ContestBean;
+
 /**
  * Servlet implementation class SeeEntitiesServlet
  */
@@ -25,45 +28,31 @@ import com.google.cloud.datastore.StructuredQuery.PropertyFilter;
 	    urlPatterns = "/contests")
 public class ViewContestsServlet extends HttpServlet {
 
-	String htmlHeaderString;
-	String tableHeaderString;
-	KeyFactory keyfactory;
 	Datastore datastore;
-	KeyFactory keyFactory;
-	Key contestKey;
-	String contestStringFormat;
-	String wagerFormString;
 	
 	/**
 	 * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse response)
 	 */
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		PrintWriter out = response.getWriter();
-		out.println(htmlHeaderString);
-		out.println("<br><a href=\"../index.jsp\">Go Home</a><br>");
-		out.println(tableHeaderString);
-		
 		Query<Entity> query = Query.newEntityQueryBuilder().setKind("Contest")
 				.setFilter(PropertyFilter.eq("resolved", false))
 				.setOrderBy(OrderBy.desc("date"))
 				.build();
 		QueryResults<Entity> results = datastore.run(query);
 		
+		ArrayList<ContestBean> allContests = new ArrayList<ContestBean>();
+		
 		results.forEachRemaining((result) -> {
-			
-			// Build up string with values from the Datastore entity
-			String recordOutput = 
-					String.format(contestStringFormat,
-							"../viewcontest?contest_id=" + String.valueOf(result.getKey().getId()),
-							result.getString("favorite") + " v. " + result.getString("dog"),
-							result.getString("favorite"), result.getString("dog"),
-							String.valueOf(result.getDouble("spread")),
-							new Date(result.getTimestamp("date").getSeconds()*1000));
-
-			out.println(recordOutput); // Print out HTML
+			ContestBean bean = new ContestBean();
+			bean.setId("../viewcontest?contest_id=" + String.valueOf(result.getKey().getId()));
+			bean.setDate(new Date(result.getTimestamp("date").getSeconds()*1000));
+			bean.setDog(result.getString("dog"));
+			bean.setFavorite(result.getString("favorite"));
+			bean.setSpread(String.valueOf(result.getDouble("spread")));
+			allContests.add(bean);
 		});
-		out.println("</table></body></html>");
-		out.close();
+		request.setAttribute("allContests", allContests);
+	    request.getRequestDispatcher("/WEB-INF/jsp/contests.jsp").forward(request, response);
 	}
 
 	/**
@@ -77,10 +66,6 @@ public class ViewContestsServlet extends HttpServlet {
 	public void init() throws ServletException {
 //		setup datastore service
 		datastore = DatastoreOptions.getDefaultInstance().getService();
-//	  keyfactory = datastore.newKeyFactory().setKind("Contest");
-		contestStringFormat = "<tr><td><a href=\"%s\">%s</a></td><td>%s</td><td>%s</td><td>%s</td><td>%tc</td></tr>";
-		htmlHeaderString = "<!DOCTYPE html><html><head><style>table {font-family: arial, sans-serif;border-collapse: collapse;width: 100%;}td, th {border: 1px solid #dddddd;text-align: left;padding: 8px;}tr:nth-child(even) {background-color: #dddddd;}</style></head><body>";
-		tableHeaderString = "<table><tr><th>Matchup</th><th>Favorite</th><th>Dog</th><th>Spread</th><th>Date</th></tr>";
 	}
 
 

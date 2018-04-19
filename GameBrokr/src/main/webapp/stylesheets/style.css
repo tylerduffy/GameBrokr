@@ -1,0 +1,72 @@
+ul {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    background-color: #333;
+}
+li {
+    float: left;
+}
+li a {
+    display: block;
+    color: white;
+    text-align: center;
+    padding: 14px 16px;
+    text-decoration: none;
+}
+/* Change the link color to #111 (black) on hover */
+li a:hover {
+    background-color: #111;
+}
+
+table {
+	font-family: arial, sans-serif;
+	border-collapse: collapse;
+	width: 75%;
+}
+
+td, th {
+	border: 1px solid #dddddd;
+	text-align: center;
+	padding: 8px 10px;
+}
+
+/* collapse leaderboard Rank column to fit contents */
+tr td:first-child {
+    width:1%;
+    white-space:nowrap;
+}
+
+table.contest tr:nth-child(even),table.wager tr:nth-child(even), table.bettor tr:nth-child(even) {
+	background-color: #dddddd;
+}
+
+div.container {
+	text-align: center;
+}
+
+table.contest, table.bettor, table.wager {
+    display: inline-table;
+}
+
+div.userdetail, div.contestdetail {
+	margin-left: 1%;
+	text-align: left;
+}
+
+div.newContestForm , div.resolveContestForm, div.wagerForm {
+    width: 15%;
+    margin-right: 5%;
+    float: right;
+    text-align: left;
+    border: 1px dashed black;
+    padding-left: 10px;
+    padding-bottom: 10px;
+    clear: right;
+}
+
+/* group of wager tables to all be horizontally aligned */
+div.tables {
+    width: 80%;
+}

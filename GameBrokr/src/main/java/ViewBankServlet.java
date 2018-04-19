@@ -45,9 +45,9 @@ public class ViewBankServlet extends HttpServlet {
 	
 			if (results.hasNext()) {
 				results.forEachRemaining((result) -> {
-	
+					
 					// Build up string with values from the Datastore entity
-					String recordOutput = String.format(bettorStringFormat, String.valueOf(result.getKey().getId()), result.getString("firstname"),
+					String recordOutput = String.format(bettorStringFormat, result.getKey().getNameOrId(), result.getString("firstname"),
 							String.valueOf(result.getValue("bank").get()));
 	
 					out.println(recordOutput); // Print out HTML

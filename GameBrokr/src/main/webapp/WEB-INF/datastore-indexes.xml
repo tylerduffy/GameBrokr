@@ -14,6 +14,24 @@
         <property name="resolved" />
         <property name="date" direction="desc" />
     </datastore-index>
+    <datastore-index kind="Wager">
+        <property name="bettor" />
+        <property name="date" direction="desc" />
+    </datastore-index>
+    <datastore-index kind="Wager">
+        <property name="contest" />
+        <property name="date" direction="desc" />
+    </datastore-index>
+    <datastore-index kind="Wager">
+        <property name="bettor" />
+        <property name="type" />
+        <property name="date" direction="desc" />
+    </datastore-index>
+    <datastore-index kind="Wager">
+        <property name="contest" />
+        <property name="type" />
+        <property name="date" direction="desc" />
+    </datastore-index>
     <datastore-index kind="Contest">
         <property name="resolved" />
         <property name="date" direction="desc" />

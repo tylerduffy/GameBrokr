@@ -33,10 +33,8 @@ public class CreateContestServlet extends HttpServlet {
 	 * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse response)
 	 */
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		PrintWriter out = response.getWriter();
-		out.println("Sorry, nothing here! Please return to the home page.");
-		out.println("<br><a href=\"../index.jsp\">Go Home</a>");
-		out.close();
+		request.setAttribute("errorMsg", "Nothing here. Please try again.");
+	    request.getRequestDispatcher("/WEB-INF/jsp/error.jsp").forward(request, response);
 	}
 
 	/**
@@ -53,7 +51,6 @@ public class CreateContestServlet extends HttpServlet {
 		
 		datastore.put(contestEntry);
 		response.sendRedirect("/contests");
-//		doGet(request, response);
 	}
 	
 	@Override

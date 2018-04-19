@@ -145,7 +145,12 @@ public class ResolveContestServlet extends HttpServlet {
 			victor = "dog";
 		}
 		
-		Entity updatedContest = Entity.newBuilder(contest).set("resolved", true).set("victor", victor).build();
+		Entity updatedContest = Entity.newBuilder(contest)
+				.set("resolved", true)
+				.set("victor", victor)
+				.set("favoritescore", favoriteScore)
+				.set("dogscore", dogScore)
+				.build();
 		datastore.update(updatedContest);
 		
 //		doGet(request, response);

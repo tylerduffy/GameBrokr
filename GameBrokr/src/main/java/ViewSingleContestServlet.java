@@ -1,6 +1,7 @@
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.Date;
 
 import javax.servlet.ServletException;
@@ -11,14 +12,21 @@ import javax.servlet.http.HttpServletResponse;
 
 import com.google.appengine.api.users.UserService;
 import com.google.appengine.api.users.UserServiceFactory;
+import com.google.cloud.Timestamp;
 import com.google.cloud.datastore.Datastore;
 import com.google.cloud.datastore.DatastoreOptions;
 import com.google.cloud.datastore.Entity;
+import com.google.cloud.datastore.FullEntity;
+import com.google.cloud.datastore.IncompleteKey;
 import com.google.cloud.datastore.Key;
 import com.google.cloud.datastore.KeyFactory;
 import com.google.cloud.datastore.Query;
 import com.google.cloud.datastore.QueryResults;
+import com.google.cloud.datastore.StructuredQuery.OrderBy;
 import com.google.cloud.datastore.StructuredQuery.PropertyFilter;
+
+import javabeans.ContestBean;
+import javabeans.WagerBean;
 
 /**
  * Servlet implementation class ViewSingleContestServlet
@@ -30,8 +38,6 @@ public class ViewSingleContestServlet extends HttpServlet {
 	Datastore datastore;
 	KeyFactory keyFactory;
 	Key contestKey;
-	String contestStringFormat;
-	String wagerFormString;
 
 	/**
 	 * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse
@@ -39,57 +45,60 @@ public class ViewSingleContestServlet extends HttpServlet {
 	 */
 	protected void doGet(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
-		UserService userService = UserServiceFactory.getUserService();
-		PrintWriter out = response.getWriter();
 		
 		if (request.getParameter("contest_id") != null) {
 			
 			long entID = Long.parseLong(request.getParameter("contest_id"));
 			contestKey = keyFactory.newKey(entID);
+
+			Entity contest = datastore.get(contestKey);
 			
-//			Entity contest = datastore.get(contestKey);
-//			if (contest != null) {
-//				out.println("<p> non empty search using simple get </p>");
-//				out.println("<p> Key Name - " + String.valueOf(contest.getKey().getId()) + " </p>");
-//			}
-
-			Query<Entity> query = Query.newEntityQueryBuilder().setKind("Contest")
-					.setFilter(PropertyFilter.eq("__key__", contestKey)).build();
+			ContestBean contestBean = new ContestBean();
+			ArrayList<WagerBean> allWagers = new ArrayList<WagerBean>();
 			
-			QueryResults<Entity> results = datastore.run(query);
-			
-			if (results.hasNext()) {
-				results.forEachRemaining((result) -> {
-					
-					// Build up string with values from the Datastore entity
-					String recordOutput = String.format(contestStringFormat, result.getString("favorite"), String.valueOf(entID), "favorite",
-							result.getString("dog"), String.valueOf(entID), "dog", String.valueOf(result.getDouble("spread")), new Date(result.getTimestamp("date").getSeconds()*1000));
-
-					out.println(recordOutput); // Print out HTML
-					
-					if (request.getUserPrincipal() == null) {
-						//out.println(request.getUserPrincipal().getName());
-						out.println(getResolveContainerString(result, entID));
-					} else {
-						out.println("Cannot resolve games while logged in.");
-					}
-				});
-
-//				out.println("</body></html>");
-
+			if (contest != null) {
+				contestBean.setId(String.valueOf(contestKey.getId()));
+				contestBean.setDate(new Date(contest.getTimestamp("date").getSeconds()*1000));
+				contestBean.setDog(contest.getString("dog"));
+				contestBean.setFavorite(contest.getString("favorite"));
+				contestBean.setSpread(String.valueOf(contest.getDouble("spread")));
+				contestBean.setResolved(contest.getBoolean("resolved"));
+				
+				Query<Entity> query = Query.newEntityQueryBuilder().setKind("Wager")
+						.setFilter(PropertyFilter.eq("contest", contestKey))
+						.setOrderBy(OrderBy.desc("date"))
+						.build();
+				
+				QueryResults<Entity> results = datastore.run(query);
+				
+				if (results.hasNext()) {
+					results.forEachRemaining((result) -> {
+						WagerBean bean = new WagerBean();
+						bean.setBettor(getBettor(result));
+						bean.setBettorName(getBettorName(result));
+						bean.setSelection(getPick(result));
+						if (result.getBoolean("resolved")) {
+							bean.setAmount(getResultReport(result));
+						} else {
+							bean.setAmount(getWager(result));
+						}
+						allWagers.add(bean);
+					});
+				}
+				
+				request.setAttribute("contest", contestBean);
+				request.setAttribute("allWagers", allWagers);
+			    request.getRequestDispatcher("/WEB-INF/jsp/contest.jsp").forward(request, response);
+				
 			} else {
-				out.println("Given Contest ID returned no results. Try Again. <br>");
-				out.println("Key Kind --- " + contestKey.getKind());
-				out.println("<br>Key Name --- " + contestKey.getName());
-				out.println("<br>Key Id --- " + contestKey.getId());
+				request.setAttribute("errorMsg", "Given Contest ID did not match any contests. Try Again.");
+			    request.getRequestDispatcher("/WEB-INF/jsp/error.jsp").forward(request, response);
 			}
 
-		} else if (request.getParameter("contest_ids") != null) {
-			out.println("Found parameter for contest - " + request.getParameter("contest_ids"));
 		} else {
-			out.println("No Contest ID found in URL. Try Again.");
+			request.setAttribute("errorMsg", "No Contest ID given. Try Again.");
+		    request.getRequestDispatcher("/WEB-INF/jsp/error.jsp").forward(request, response);
 		}
-		out.close();
 	}
 
 	/**
@@ -106,29 +115,73 @@ public class ViewSingleContestServlet extends HttpServlet {
 		// setup datastore service
 		datastore = DatastoreOptions.getDefaultInstance().getService();
 		keyFactory = datastore.newKeyFactory().setKind("Contest");
-		contestStringFormat = " Favorite: %s " + getWagerString() + "<br> Dog: %s " + getWagerString() + "<p> Spread: %s</p><p> Date: %tc</p>";
 	}
 	
-	private String getResolveContainerString(Entity entity, long entID) {
-		return "<br><div class=\"container\"><h2>Resolve Game</h2>" + 
-				"<form method=\"POST\" action=\"/resolvecontest\">" +
-				"<div><input type=\"hidden\" name=\"contestid\" id=\"contestid\" value=\""+String.valueOf(entID)+"\"/></div>" +
-				"<div><label for=\"favoritescore\">"+ entity.getString("favorite") +" </label>" +
-				"<input type=\"number\" name=\"favoritescore\" id=\"favoritescore\" size=\"25\" class=\"form-control\"/></div>" + 
-				"<div><label for=\"dogscore\">"+ entity.getString("dog") +" </label>" + 
-				"<input type=\"number\" name=\"dogscore\" id=\"dogscore\" size=\"25\" class=\"form-control\"/>" + 
-				"</div><button type=\"submit\">Submit</button></form></div>";
+	private String getBettor(Entity entity) {
+		Entity bettor = datastore.get(entity.getKey("bettor"));
+		if (bettor != null) {
+			return "../viewbettor?bettor_id=" + String.valueOf(bettor.getKey().getNameOrId());
+		} else {
+			return "../viewbettor?bettor_id=x";
+		}
 	}
 	
-	private String getWagerString() {
-		return "<form style=\"display:inline;\" method=\"POST\" action=\"/placebet\">" +
-				"<input type=\"hidden\" name=\"contestid\" id=\"contestid\" value=\"%s\"/>" +
-				"<input type=\"hidden\" name=\"selection\" id=\"selection\" value=\"%s\"/>" +
-				"<div><label for=\"wageramount\">Wager </label>" +
-				"<input type=\"number\" name=\"wageramount\" id=\"wageramount\" size=\"25\" class=\"form-control\"/>" + 
-				"<input type=\"radio\" name=\"userid\" value=\"5715999101812736\">Charlie " +
-				"<input type=\"radio\" name=\"userid\" value=\"5649391675244544\">Tyler " +
-				"<button type=\"submit\">Submit</button></form></div>";
+	private String getBettorName(Entity entity) {
+		Entity bettor = datastore.get(entity.getKey("bettor"));
+		if (bettor != null) {
+			return bettor.getString("username");
+		}
+		return "Username Could Not Be Resolved";
+	}
+	
+	private String getPick(Entity entity) {
+		String pick = entity.getString("selection");
+		if (pick != null) {
+			Entity contest = datastore.get(entity.getKey("contest"));
+			if (contest != null) {
+				if (pick.equals("favorite")) {
+					return contest.getString("favorite") + " (-" + getSpread(contest) + ")";
+				} else {
+					return contest.getString("dog") + " (+" + getSpread(contest) + ")";
+				}
+			} else {
+				return "err 1 - Pick Could Not Be Resolved";
+			}
+		}
+		return "err 2 - Pick Could Not Be Resolved";
+	}
+	
+	private String getSpread(Entity entity) {
+		return String.valueOf(entity.getDouble("spread"));
+	}
+	
+	private String getWager(Entity entity) {
+		return "$" + String.valueOf(entity.getValue("amount").get());
+	}
+	
+	private String getResult(Entity wager) {
+		Entity contest = datastore.get(wager.getKey("contest"));
+		String victor = contest.getString("victor");
+		String selection = wager.getString("selection");
+		if (victor.equals("push")) {
+			return "push";
+		} else if (victor.equals(selection)) {
+			return "win";
+		}
+		return "loss";
+	}
+	
+	private String getResultReport(Entity result) {
+		String resultStr = getResult(result);
+		String resultReportString;
+		if (resultStr.equals("win")) {
+			resultReportString = "W +" + getWager(result);
+		} else if (resultStr.equals("loss")) {
+			resultReportString = "L -" + getWager(result);
+		} else {
+			resultReportString = "W +$0";
+		}
+		return resultReportString;
 	}
 
 }

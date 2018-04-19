@@ -1,7 +1,7 @@
 
 
 import java.io.IOException;
-import java.io.PrintWriter;
+import java.util.ArrayList;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -17,6 +17,8 @@ import com.google.cloud.datastore.QueryResults;
 import com.google.cloud.datastore.StructuredQuery.OrderBy;
 import com.google.cloud.datastore.StructuredQuery.PropertyFilter;
 
+import javabeans.WagerBean;
+
 /**
  * Servlet implementation class ViewWagersServlet
  */
@@ -25,18 +27,11 @@ import com.google.cloud.datastore.StructuredQuery.PropertyFilter;
 public class ViewWagersServlet extends HttpServlet {
 	
 	Datastore datastore;
-	String wagerStringFormat;
-	String htmlHeaderString;
-	String tableHeaderString;
 
 	/**
 	 * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse response)
 	 */
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		PrintWriter out = response.getWriter();
-		out.println(htmlHeaderString);
-		out.println("<br><a href=\"../index.jsp\">Go Home</a><br>");
-		out.println(tableHeaderString);
 		Query<Entity> query = Query.newEntityQueryBuilder().setKind("Wager")
 				.setFilter(PropertyFilter.eq("resolved", false))
 				.setOrderBy(OrderBy.desc("date"))
@@ -44,23 +39,23 @@ public class ViewWagersServlet extends HttpServlet {
 
 		QueryResults<Entity> results = datastore.run(query);
 
+		ArrayList<WagerBean> allWagers = new ArrayList<WagerBean>();
+		
 		if (results.hasNext()) {
 			results.forEachRemaining((result) -> {
-
-				// Build up string with values from the Datastore entity
-				String recordOutput = String.format(wagerStringFormat, getMatchupString(result),
-						getBettorName(result), getPick(result), getWager(result));
-
-				out.println(recordOutput); // Print out HTML
+				WagerBean bean = new WagerBean();
+				bean.setMatchup(getMatchupString(result));
+				bean.setMatchupLink(getMatchupLink(result));
+				bean.setBettor(getBettor(result));
+				bean.setBettorName(getBettorName(result));
+				bean.setSelection(getPick(result));
+				bean.setAmount(getWager(result));
+				allWagers.add(bean);
 			});
-
-			out.println("</table></body></html>");
-
-		} else {
-			out.println("No Wagers Found. Try Again Later.");
 		}
 		
-		out.close();
+		request.setAttribute("allWagers", allWagers);
+	    request.getRequestDispatcher("/WEB-INF/jsp/wagers.jsp").forward(request, response);
 	}
 
 	/**
@@ -68,6 +63,21 @@ public class ViewWagersServlet extends HttpServlet {
 	 */
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		doGet(request, response);
+	}
+	
+	@Override
+	public void init() throws ServletException {
+		// setup datastore service
+		datastore = DatastoreOptions.getDefaultInstance().getService();
+	}
+	
+	private String getMatchupLink(Entity entity) {
+		Entity contest = datastore.get(entity.getKey("contest"));
+		if (contest != null) {
+			return "../viewcontest?contest_id=" + String.valueOf(contest.getKey().getId());
+		} else {
+			return "../viewcontest?contest_id=x";
+		}
 	}
 	
 	private String getMatchupString(Entity entity) {
@@ -78,10 +88,19 @@ public class ViewWagersServlet extends HttpServlet {
 		return "Matchup Could Not Be Resolved";
 	}
 	
+	private String getBettor(Entity entity) {
+		Entity bettor = datastore.get(entity.getKey("bettor"));
+		if (bettor != null) {
+			return "../viewbettor?bettor_id=" + String.valueOf(bettor.getKey().getNameOrId());
+		} else {
+			return "../viewbettor?bettor_id=x";
+		}
+	}
+	
 	private String getBettorName(Entity entity) {
 		Entity bettor = datastore.get(entity.getKey("bettor"));
 		if (bettor != null) {
-			return bettor.getString("firstname");
+			return bettor.getString("username");
 		}
 		return "Username Could Not Be Resolved";
 	}
@@ -110,14 +129,4 @@ public class ViewWagersServlet extends HttpServlet {
 	private String getWager(Entity entity) {
 		return "$" + String.valueOf(entity.getValue("amount").get());
 	}
-	
-	@Override
-	public void init() throws ServletException {
-		// setup datastore service
-		datastore = DatastoreOptions.getDefaultInstance().getService();
-		wagerStringFormat = "<tr><td>%s</td><td>%s</td><td>%s</td><td>%s</td></tr>";
-		htmlHeaderString = "<!DOCTYPE html><html><head><style>table {font-family: arial, sans-serif;border-collapse: collapse;width: 100%;}td, th {border: 1px solid #dddddd;text-align: left;padding: 8px;}tr:nth-child(even) {background-color: #dddddd;}</style></head><body>";
-		tableHeaderString = "<table><tr><th>Matchup</th><th>Bettor</th><th>Pick</th><th>Wager</th></tr>";
-	}
-
 }
