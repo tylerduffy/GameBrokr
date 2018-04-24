@@ -52,19 +52,20 @@ public class ResolveContestServlet extends HttpServlet {
 		contestKey = contestKeyFactory.newKey(contestid);
 		Entity contest = datastore.get(contestKey);
 		double spread = contest.getDouble("spread");
+		double favoriteline = contest.getDouble("favoriteline");
+		double dogline = contest.getDouble("dogline");
+		double overunder = contest.getDouble("overunder");
 		
-		// DONE #1. Find winner/coverer
-			// #1.A. Determine winner. If dog outright, pay. If favorite, continue.
-			// #1.B. Find margin of victory (MoV), continue.
+		/**
+		 * SPREAD
+		 */
 		Query<Entity> query;
 		query = Query.newEntityQueryBuilder().setKind("Wager")
-				.setFilter(PropertyFilter.eq("contest", contestKey))
+				.setFilter(CompositeFilter.and(
+						(PropertyFilter.eq("contest", contestKey)),
+						(PropertyFilter.eq("type", "spread"))))
 				.build();
 		
-		// DONE #2. Find unresolved wagers and settle payment
-			// #2.A. If margin of victory (MoV) > spread, pay favorites (2x).
-			// #2.B. If MoV < spread, pay dogs (2x).
-			// #2.C. If MoV = spread, pay all (1x).
 		if (margin > spread) {
 			// favorite covered
 			QueryResults<Entity> results = datastore.run(query);
@@ -73,23 +74,14 @@ public class ResolveContestServlet extends HttpServlet {
 				Entity bettor = datastore.get(result.getKey("bettor"));
 				if (result.getString("selection").equals("favorite")) {
 					long amount = (long) result.getValue("amount").get();
-					long bank = (long) bettor.getValue("bank").get();
 					long payout = 2 * amount;
-					long wins = (long) bettor.getValue("win").get();
 					
-					Entity updatedBettor = Entity.newBuilder(bettor)
-							.set("bank", bank + payout)
-							.set("win", wins + 1)
-							.build();
-					datastore.update(updatedBettor);
+					bettorWin(bettor, payout);
+					resolveWager(result, true, amount);
 				} else {
-					long losses = (long) bettor.getValue("loss").get();
-					Entity updatedBettor = Entity.newBuilder(bettor).set("loss", losses + 1).build();
-					datastore.update(updatedBettor);
+					bettorLose(bettor);
+					resolveWager(result, false, (long) result.getValue("amount").get());
 				}
-				
-				Entity updatedWager = Entity.newBuilder(result).set("resolved", true).build();
-				datastore.update(updatedWager);
 			});
 		} else if (spread > margin) {
 			// dog covered
@@ -99,23 +91,14 @@ public class ResolveContestServlet extends HttpServlet {
 				Entity bettor = datastore.get(result.getKey("bettor"));
 				if (result.getString("selection").equals("dog")) {
 					long amount = (long) result.getValue("amount").get();
-					long bank = (long) bettor.getValue("bank").get();
 					long payout = 2 * amount;
-					long wins = (long) bettor.getValue("win").get();
 					
-					Entity updatedBettor = Entity.newBuilder(bettor)
-							.set("bank", bank + payout)
-							.set("win", wins + 1)
-							.build();
-					datastore.update(updatedBettor);
+					bettorWin(bettor, payout);
+					resolveWager(result, true, amount);
 				} else {
-					long losses = (long) bettor.getValue("loss").get();
-					Entity updatedBettor = Entity.newBuilder(bettor).set("loss", losses + 1).build();
-					datastore.update(updatedBettor);
+					bettorLose(bettor);
+					resolveWager(result, false, (long) result.getValue("amount").get());
 				}
-				
-				Entity updatedWager = Entity.newBuilder(result).set("resolved", true).build();
-				datastore.update(updatedWager);
 			});
 		} else {
 			// push (tie)
@@ -123,37 +106,140 @@ public class ResolveContestServlet extends HttpServlet {
 				results.forEachRemaining((result) -> {
 				long amount = (long) result.getValue("amount").get();
 				Entity bettor = datastore.get(result.getKey("bettor"));
-				long bank = (long) bettor.getValue("bank").get();
 				long payout = amount;
-				long wins = (long) bettor.getValue("win").get();
-					
-				Entity updatedBettor = Entity.newBuilder(bettor)
-						.set("bank", bank + payout)
-						.set("win", wins + 1)
-						.build();
-				datastore.update(updatedBettor);
-					
-				Entity updatedWager = Entity.newBuilder(result).set("resolved", true).build();
-				datastore.update(updatedWager);
+
+				bettorWin(bettor, payout);
+				resolveWager(result, true, 0);
 			});
 		}
 		
-		String victor = "push";
-		if (margin > spread) {
+		/**
+		 * MONEYLINE
+		 */
+		Query<Entity> moneylineQuery = Query.newEntityQueryBuilder().setKind("Wager")
+				.setFilter(CompositeFilter.and(
+						(PropertyFilter.eq("contest", contestKey)),
+						(PropertyFilter.eq("type", "moneyline"))))
+				.build();
+		
+		if (favoriteScore > dogScore) {
+			// favorite wins
+			QueryResults<Entity> results = datastore.run(moneylineQuery);
+			results.forEachRemaining((result) -> {
+				Entity bettor = datastore.get(result.getKey("bettor"));
+				if (result.getString("selection").equals("favorite")) {
+					long baseline = 100;
+					long amount = (long) result.getValue("amount").get();
+					double multiplier = baseline / favoriteline;
+					long payout = (long) (multiplier * amount);
+					
+					bettorWin(bettor, payout + amount);
+					resolveWager(result, true, payout);
+				} else {
+					bettorLose(bettor);
+					resolveWager(result, false, (long) result.getValue("amount").get());
+				}
+			});
+		} else if (dogScore > favoriteScore) {
+			// dog wins
+			QueryResults<Entity> results = datastore.run(moneylineQuery);
+			results.forEachRemaining((result) -> {
+				Entity bettor = datastore.get(result.getKey("bettor"));
+				if (result.getString("selection").equals("dog")) {
+					long baseline = 100;
+					long amount = (long) result.getValue("amount").get();
+					double multiplier = dogline / baseline;
+					long payout = (long) (multiplier * amount);
+					
+					bettorWin(bettor, payout + amount);
+					resolveWager(result, true, payout);
+				} else {
+					bettorLose(bettor);
+					resolveWager(result, false, (long) result.getValue("amount").get());
+				}
+			});
+		} else {
+			// tie
+			QueryResults<Entity> results = datastore.run(moneylineQuery);
+			results.forEachRemaining((result) -> {
+				Entity bettor = datastore.get(result.getKey("bettor"));
+				long amount = (long) result.getValue("amount").get();
+				long payout = amount;
+
+				bettorWin(bettor, payout);
+				resolveWager(result, true, 0);
+			});
+		}
+		
+		/**
+		 * OVER/UNDER
+		 */
+		Query<Entity> overunderQuery = Query.newEntityQueryBuilder().setKind("Wager")
+				.setFilter(CompositeFilter.and(
+						(PropertyFilter.eq("contest", contestKey)),
+						(PropertyFilter.eq("type", "overunder"))))
+				.build();
+		
+		if (favoriteScore + dogScore > overunder) {
+			// over wins
+			QueryResults<Entity> results = datastore.run(overunderQuery);
+			results.forEachRemaining((result) -> {
+				Entity bettor = datastore.get(result.getKey("bettor"));
+				if (result.getString("selection").equals("over")) {
+					long amount = (long) result.getValue("amount").get();
+					long payout = 2 * amount;
+
+					bettorWin(bettor, payout);
+					resolveWager(result, true, amount);
+				} else {
+					bettorLose(bettor);
+					resolveWager(result, false, (long) result.getValue("amount").get());
+				}
+			});
+		} else if (favoriteScore + dogScore < overunder) {
+			// under wins
+			QueryResults<Entity> results = datastore.run(overunderQuery);
+			results.forEachRemaining((result) -> {
+				Entity bettor = datastore.get(result.getKey("bettor"));
+				if (result.getString("selection").equals("under")) {
+					long amount = (long) result.getValue("amount").get();
+					long payout = 2 * amount;
+
+					bettorWin(bettor, payout);
+					resolveWager(result, true, amount);
+				} else {
+					bettorLose(bettor);
+					resolveWager(result, false, (long) result.getValue("amount").get());
+				}
+			});
+		} else {
+			// push
+			QueryResults<Entity> results = datastore.run(overunderQuery);
+			results.forEachRemaining((result) -> {
+				Entity bettor = datastore.get(result.getKey("bettor"));
+				long amount = (long) result.getValue("amount").get();
+				long payout = amount;
+				
+				bettorWin(bettor, payout);
+				resolveWager(result, true, 0);
+			});
+		}
+		
+		String victor = "tie";
+		if (favoriteScore > dogScore) {
 			victor = "favorite";
-		} else if (spread > margin) {
+		} else if (dogScore > favoriteScore) {
 			victor = "dog";
 		}
 		
 		Entity updatedContest = Entity.newBuilder(contest)
 				.set("resolved", true)
 				.set("victor", victor)
-				.set("favoritescore", favoriteScore)
-				.set("dogscore", dogScore)
+				.set("favoriteresult", favoriteScore)
+				.set("dogresult", dogScore)
 				.build();
 		datastore.update(updatedContest);
 		
-//		doGet(request, response);
 		response.sendRedirect("/contests");
 	}
 	
@@ -162,6 +248,35 @@ public class ResolveContestServlet extends HttpServlet {
 		// setup datastore service
 		datastore = DatastoreOptions.getDefaultInstance().getService();
 		contestKeyFactory = datastore.newKeyFactory().setKind("Contest");
+	}
+	
+	private void bettorWin(Entity bettor, long payout) {
+		long bank = (long) bettor.getValue("bank").get();
+		long wins = (long) bettor.getValue("win").get();
+		
+		Entity updatedBettor = Entity.newBuilder(bettor)
+				.set("bank", bank + payout)
+				.set("win", wins + 1)
+				.build();
+		datastore.update(updatedBettor);
+	}
+	
+	private void bettorLose(Entity bettor) {
+		long losses = (long) bettor.getValue("loss").get();
+		Entity updatedBettor = Entity.newBuilder(bettor).set("loss", losses + 1).build();
+		datastore.update(updatedBettor);
+	}
+	
+	private void resolveWager(Entity wager, boolean win, long payout) {
+		String resultStr = "L -$" + payout;
+		if (win) {			
+			resultStr = "W +$" + payout;
+		}
+		Entity updatedWager = Entity.newBuilder(wager)
+				.set("resolved", true)
+				.set("result", resultStr)
+				.build();
+		datastore.update(updatedWager);
 	}
 
 }

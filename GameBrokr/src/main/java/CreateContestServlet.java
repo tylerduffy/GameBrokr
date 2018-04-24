@@ -44,7 +44,10 @@ public class CreateContestServlet extends HttpServlet {
 		FullEntity<IncompleteKey> contestEntry = Entity.newBuilder(keyFactory.newKey())
 				.set("favorite", request.getParameter("favorite"))
 				.set("dog", request.getParameter("dog"))
-				.set("spread",Double.parseDouble(request.getParameter("spread")))
+				.set("spread", parseOdds(request.getParameter("spread")))
+				.set("favoriteline", parseOdds(request.getParameter("favline")))
+				.set("dogline", parseOdds(request.getParameter("dogline")))
+				.set("overunder", parseOdds(request.getParameter("overunder")))
 				.set("date", Timestamp.now())
 				.set("resolved", false)
 				.build();
@@ -58,6 +61,14 @@ public class CreateContestServlet extends HttpServlet {
 		// setup datastore service
 		datastore = DatastoreOptions.getDefaultInstance().getService();
 		keyFactory = datastore.newKeyFactory().setKind("Contest");
+	}
+	
+	private double parseOdds(String param) {
+		if (param != null && !param.equals("")) {
+			return Double.parseDouble(param);
+		} else {
+			return -1;
+		}
 	}
 
 }

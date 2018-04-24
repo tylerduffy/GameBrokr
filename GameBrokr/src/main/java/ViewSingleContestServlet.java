@@ -1,6 +1,5 @@
 
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Date;
 
@@ -10,18 +9,14 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import com.google.appengine.api.users.UserService;
-import com.google.appengine.api.users.UserServiceFactory;
-import com.google.cloud.Timestamp;
 import com.google.cloud.datastore.Datastore;
 import com.google.cloud.datastore.DatastoreOptions;
 import com.google.cloud.datastore.Entity;
-import com.google.cloud.datastore.FullEntity;
-import com.google.cloud.datastore.IncompleteKey;
 import com.google.cloud.datastore.Key;
 import com.google.cloud.datastore.KeyFactory;
 import com.google.cloud.datastore.Query;
 import com.google.cloud.datastore.QueryResults;
+import com.google.cloud.datastore.StructuredQuery.CompositeFilter;
 import com.google.cloud.datastore.StructuredQuery.OrderBy;
 import com.google.cloud.datastore.StructuredQuery.PropertyFilter;
 
@@ -54,7 +49,6 @@ public class ViewSingleContestServlet extends HttpServlet {
 			Entity contest = datastore.get(contestKey);
 			
 			ContestBean contestBean = new ContestBean();
-			ArrayList<WagerBean> allWagers = new ArrayList<WagerBean>();
 			
 			if (contest != null) {
 				contestBean.setId(String.valueOf(contestKey.getId()));
@@ -63,31 +57,21 @@ public class ViewSingleContestServlet extends HttpServlet {
 				contestBean.setFavorite(contest.getString("favorite"));
 				contestBean.setSpread(String.valueOf(contest.getDouble("spread")));
 				contestBean.setResolved(contest.getBoolean("resolved"));
-				
-				Query<Entity> query = Query.newEntityQueryBuilder().setKind("Wager")
-						.setFilter(PropertyFilter.eq("contest", contestKey))
-						.setOrderBy(OrderBy.desc("date"))
-						.build();
-				
-				QueryResults<Entity> results = datastore.run(query);
-				
-				if (results.hasNext()) {
-					results.forEachRemaining((result) -> {
-						WagerBean bean = new WagerBean();
-						bean.setBettor(getBettor(result));
-						bean.setBettorName(getBettorName(result));
-						bean.setSelection(getPick(result));
-						if (result.getBoolean("resolved")) {
-							bean.setAmount(getResultReport(result));
-						} else {
-							bean.setAmount(getWager(result));
-						}
-						allWagers.add(bean);
-					});
+				contestBean.setDogline(String.valueOf(contest.getDouble("dogline")));
+				contestBean.setFavoriteline(String.valueOf(contest.getDouble("favoriteline")));
+				contestBean.setOverunder(String.valueOf(contest.getDouble("overunder")));
+				if (contestBean.isResolved()) {
+					contestBean.setFavoriteresult(String.valueOf(contest.getLong("favoriteresult")));
+					contestBean.setDogresult(String.valueOf(contest.getLong("dogresult")));
 				}
 				
 				request.setAttribute("contest", contestBean);
-				request.setAttribute("allWagers", allWagers);
+				request.setAttribute("spreadWagers", fillBeans("spread"));
+				request.setAttribute("moneylineWagers", fillBeans("moneyline"));
+				request.setAttribute("overunderWagers", fillBeans("overunder"));
+				request.setAttribute("canSpread", canSpread(contestBean));
+				request.setAttribute("canMoneyline", canMoneyline(contestBean));
+				request.setAttribute("canOverunder", canOverunder(contestBean));
 			    request.getRequestDispatcher("/WEB-INF/jsp/contest.jsp").forward(request, response);
 				
 			} else {
@@ -139,10 +123,26 @@ public class ViewSingleContestServlet extends HttpServlet {
 		if (pick != null) {
 			Entity contest = datastore.get(entity.getKey("contest"));
 			if (contest != null) {
-				if (pick.equals("favorite")) {
-					return contest.getString("favorite") + " (-" + getSpread(contest) + ")";
+				if (entity.getString("type").equals("spread")) {
+					if (pick.equals("favorite")) {
+						return contest.getString("favorite") + " (-" + getSpread(contest) + ")";
+					} else {
+						return contest.getString("dog") + " (+" + getSpread(contest) + ")";
+					}
+				} else if (entity.getString("type").equals("moneyline")) {
+					if (pick.equals("favorite")) {
+						return contest.getString("favorite") + " (-" + contest.getDouble("favoriteline") + ")";
+					} else {
+						return contest.getString("dog") + " (+" + contest.getDouble("dogline") + ")";
+					}
+				} else if (entity.getString("type").equals("overunder")) {
+					if (pick.equals("over")) {
+						return "Over (>" + contest.getDouble("overunder") + ")";
+					} else {
+						return "Under (<" + contest.getDouble("overunder") + ")";
+					}
 				} else {
-					return contest.getString("dog") + " (+" + getSpread(contest) + ")";
+					return "err 3 - Wager type not recognized";
 				}
 			} else {
 				return "err 1 - Pick Could Not Be Resolved";
@@ -182,6 +182,47 @@ public class ViewSingleContestServlet extends HttpServlet {
 			resultReportString = "W +$0";
 		}
 		return resultReportString;
+	}
+	
+	private ArrayList<WagerBean> fillBeans(String type) {
+		Query<Entity> query = Query.newEntityQueryBuilder().setKind("Wager")
+				.setFilter(CompositeFilter.and(
+						(PropertyFilter.eq("contest", contestKey)),
+						(PropertyFilter.eq("type", type))))
+				.setOrderBy(OrderBy.desc("date"))
+				.build();
+		
+		QueryResults<Entity> results = datastore.run(query);
+		ArrayList<WagerBean> list = new ArrayList<WagerBean>();
+		if (results.hasNext()) {
+			results.forEachRemaining((result) -> {
+				WagerBean bean = new WagerBean();
+				bean.setBettor(getBettor(result));
+				bean.setBettorName(getBettorName(result));
+				bean.setSelection(getPick(result));
+				if (result.getBoolean("resolved")) {
+					bean.setAmount(getResultReport(result));
+				} else {
+					bean.setAmount(getWager(result));
+				}
+				list.add(bean);
+			});
+		}
+		return list;
+	}
+	
+	private boolean canSpread(ContestBean contest) {
+		return (contest.getSpread() != null && (Double.parseDouble(contest.getSpread()) > -1));
+	}
+	
+	private boolean canMoneyline(ContestBean contest) {
+		boolean favline = (contest.getFavoriteline() != null && (Double.parseDouble(contest.getFavoriteline()) > -1));
+		boolean dogline = (contest.getDogline() != null && (Double.parseDouble(contest.getDogline()) > -1));
+		return (favline && dogline);
+	}
+	
+	private boolean canOverunder(ContestBean contest) {
+		return (contest.getOverunder() != null && (Double.parseDouble(contest.getOverunder()) > -1));
 	}
 
 }

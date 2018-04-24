@@ -28,12 +28,14 @@
 	    <table class="wager">
 		    <tr>
 				<th>Matchup</th>
+				<th>Type</th>
 				<th>Selection</th>
 				<th>Wager</th>
 			</tr>
 		    <c:forEach items="${openWagers}" var="wager">
 		    	<tr>
 		    		<td><a href="${wager.matchupLink}">${wager.matchup}</a></td>
+		    		<td>${wager.type}</td>
 		    		<td>${wager.selection}</td>
 		    		<td>${wager.amount}</td>
 		    	</tr>
@@ -43,12 +45,14 @@
 	    <table class="wager">
 		    <tr>
 				<th>Matchup</th>
+				<th>Type</th>
 				<th>Selection</th>
 				<th>Result</th>
 			</tr>
 		    <c:forEach items="${closedWagers}" var="wager">
 		    	<tr>
 		    		<td><a href="${wager.matchupLink}">${wager.matchup}</a></td>
+		    		<td>${wager.type}</td>
 		    		<td>${wager.selection}</td>
 		    		<td>${wager.result}</td>
 		    	</tr>

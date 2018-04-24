@@ -1,8 +1,9 @@
 
 
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -19,7 +20,6 @@ import com.google.cloud.datastore.Key;
 import com.google.cloud.datastore.KeyFactory;
 import com.google.cloud.datastore.Query;
 import com.google.cloud.datastore.QueryResults;
-import com.google.cloud.datastore.StructuredQuery.CompositeFilter;
 import com.google.cloud.datastore.StructuredQuery.OrderBy;
 import com.google.cloud.datastore.StructuredQuery.PropertyFilter;
 
@@ -36,6 +36,7 @@ public class ViewProfileServlet extends HttpServlet {
 	Datastore datastore;
 	KeyFactory bettorKeyFactory;
 	UserService userService;
+	Map<String, String> typeMap;
 
 	/**
 	 * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse response)
@@ -72,8 +73,9 @@ public class ViewProfileServlet extends HttpServlet {
 				bean.setMatchup(getMatchupString(result));
 				bean.setMatchupLink(getMatchupLink(result));
 				bean.setSelection(getPick(result));
+				bean.setType(typeMap.get(result.getString("type")));
 				if (result.getBoolean("resolved")) {
-					bean.setResult(getResultReport(result));
+					bean.setResult(result.getString("result"));
 					closedWagers.add(bean);
 				} else {
 					bean.setAmount(getWager(result));
@@ -101,6 +103,10 @@ public class ViewProfileServlet extends HttpServlet {
 		datastore = DatastoreOptions.getDefaultInstance().getService();
 		bettorKeyFactory = datastore.newKeyFactory().setKind("Bettor");
 		userService = UserServiceFactory.getUserService();
+		typeMap = new HashMap<String,String>();
+		typeMap.put("spread", "Spread");
+		typeMap.put("moneyline", "Money Line");
+		typeMap.put("overunder", "Over/Under");
 	}
 	
 	private String getMatchupLink(Entity entity) {
@@ -125,10 +131,26 @@ public class ViewProfileServlet extends HttpServlet {
 		if (pick != null) {
 			Entity contest = datastore.get(entity.getKey("contest"));
 			if (contest != null) {
-				if (pick.equals("favorite")) {
-					return contest.getString("favorite") + " (-" + getSpread(contest) + ")";
+				if (entity.getString("type").equals("spread")) {
+					if (pick.equals("favorite")) {
+						return contest.getString("favorite") + " (-" + getSpread(contest) + ")";
+					} else {
+						return contest.getString("dog") + " (+" + getSpread(contest) + ")";
+					}
+				} else if (entity.getString("type").equals("moneyline")) {
+					if (pick.equals("favorite")) {
+						return contest.getString("favorite") + " (-" + contest.getDouble("favoriteline") + ")";
+					} else {
+						return contest.getString("dog") + " (+" + contest.getDouble("dogline") + ")";
+					}
+				} else if (entity.getString("type").equals("overunder")) {
+					if (pick.equals("over")) {
+						return "Over (>" + contest.getDouble("overunder") + ")";
+					} else {
+						return "Under (<" + contest.getDouble("overunder") + ")";
+					}
 				} else {
-					return contest.getString("dog") + " (+" + getSpread(contest) + ")";
+					return "err 3 - Wager type not recognized";
 				}
 			} else {
 				return "err 1 - Pick Could Not Be Resolved";
@@ -143,31 +165,6 @@ public class ViewProfileServlet extends HttpServlet {
 	
 	private String getWager(Entity entity) {
 		return "$" + String.valueOf(entity.getValue("amount").get());
-	}
-	
-	private String getResult(Entity wager) {
-		Entity contest = datastore.get(wager.getKey("contest"));
-		String victor = contest.getString("victor");
-		String selection = wager.getString("selection");
-		if (victor.equals("push")) {
-			return "push";
-		} else if (victor.equals(selection)) {
-			return "win";
-		}
-		return "loss";
-	}
-	
-	private String getResultReport(Entity result) {
-		String resultStr = getResult(result);
-		String resultReportString;
-		if (resultStr.equals("win")) {
-			resultReportString = "W +" + getWager(result);
-		} else if (resultStr.equals("loss")) {
-			resultReportString = "L -" + getWager(result);
-		} else {
-			resultReportString = "W +$0";
-		}
-		return resultReportString;
 	}
 
 }

@@ -19,26 +19,7 @@
     <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c"%>
 
 	<div class="container">
-		<h1>Contests</h1>
-	    <table class="contest">
-		    <tr>
-				<th>Matchup</th>
-				<th>Favorite</th>
-				<th>Dog</th>
-				<th>Spread</th>
-				<th>Date</th>
-			</tr>
-		    <c:forEach items="${allContests}" var="contest">
-		    	<tr>
-		    		<td><a href="${contest.id}">${contest.favorite} v. ${contest.dog}</a></td>
-		    		<td>${contest.favorite}</td>
-		    		<td>${contest.dog}</td>
-		    		<td>${contest.spread}</td>
-		    		<td>${contest.date}</td>
-		    	</tr>
-		    </c:forEach>
-	    </table>
-	    <div class="newContestForm">
+		<div class="newContestForm">
 			<h2>
 			  Add a New Contest
 			</h2>
@@ -47,19 +28,57 @@
 			    <label for="favorite">Favorite </label>
 			    <input type="text" name="favorite" id="favorite" class="form-control" required />
 			  </div>
-			
 			  <div>
 			    <label for="dog">Dog </label>
 			    <input type="text" name="dog" id="dog" class="form-control" required />
 			  </div>
-			  
+			  <br>
 			  <div>
 			    <label for="spread">Spread </label>
-			    <input type="number" step="0.1" name="spread" id="spread" class="form-control" required />
+			    <input type="number" step="0.1" name="spread" id="spread" class="form-control" />
 			  </div>
-			  <button type="submit">Save</button>
+			  <br>
+			  <div>
+			    <label for="favline">$ Line (- Fav) </label>
+			    <input type="number" step="0.1" name="favline" id="favline" class="form-control" />
+			  </div>
+			  <div>
+			    <label for="dogline">$ Line (+ Dog) </label>
+			    <input type="number" step="0.1" name="dogline" id="dogline" class="form-control" />
+			  </div>
+			  <br>
+			  <div>
+			    <label for="overunder">Over/Under </label>
+			    <input type="number" step="0.1" name="overunder" id="overunder" class="form-control" />
+			  </div>
+			  <br>
+			  <button type="submit">Add</button>
 			</form>
 	    </div>
+	    
+		<div class="tables">
+			<h1>Contests</h1>
+		    <table class="contest">
+			    <tr>
+					<th>Matchup</th>
+					<th>Favorite</th>
+					<th>Spread</th>
+					<th>Money Line</th>
+					<th>Over/Under</th>
+					<th>Date</th>
+				</tr>
+			    <c:forEach items="${allContests}" var="contest">
+			    	<tr>
+			    		<td><a href="${contest.id}">${contest.favorite} v. ${contest.dog}</a></td>
+			    		<td>${contest.favorite}</td>
+			    		<td>${contest.spread}</td>
+			    		<td>${contest.moneyline}</td>
+			    		<td>${contest.overunder}</td>
+			    		<td>Proper date TBD</td>
+			    	</tr>
+			    </c:forEach>
+		    </table>
+		</div>
     </div>
   </body>
 </html>

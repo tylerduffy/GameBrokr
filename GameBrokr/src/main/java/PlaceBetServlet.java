@@ -38,10 +38,14 @@ public class PlaceBetServlet extends HttpServlet {
 	 */
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		String errMsg = "No bet was placed. Unknown error. Please try again.";
-		if (request.getParameter("err").equals("funds")) {
-			errMsg = "Insufficient Funds! Please try again.";
+		if (request.getAttribute("err") != null) {
+			if (request.getAttribute("err").equals("funds")) {
+				errMsg = "Insufficient Funds! Please try again.";
+			}
+			request.setAttribute("errorMsg", errMsg);
+		    request.getRequestDispatcher("/WEB-INF/jsp/error.jsp").forward(request, response);
 		}
-		request.setAttribute("errorMsg", errMsg);
+		request.setAttribute("errorMsg", "Reached this page in error. Please try again.");
 	    request.getRequestDispatcher("/WEB-INF/jsp/error.jsp").forward(request, response);
 	}
 
@@ -68,14 +72,16 @@ public class PlaceBetServlet extends HttpServlet {
 					.set("amount", amount)
 					.set("bettor", bettorKey)
 					.set("contest", getContestKey(request.getParameter("contestid")))
-					.set("selection", request.getParameter("selection"))
-					.set("resolved", false)
 					.set("date", Timestamp.now())
+					.set("resolved", false)
+					.set("selection", request.getParameter("selection"))
+					.set("type", request.getParameter("type"))
 					.build();
 			
 			datastore.put(wagerEntry);
-			response.sendRedirect("/wagers?err=funds");
+			response.sendRedirect("/profile");
 		}
+		request.setAttribute("err", "funds");
 		doGet(request, response);
 	}
 	

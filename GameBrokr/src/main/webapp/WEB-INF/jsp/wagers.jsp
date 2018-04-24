@@ -20,6 +20,7 @@
 
 	<div class="container">
 		<h1>Wagers</h1>
+		<h2>Spread</h2>
 	    <table class="contest">
 		    <tr>
 				<th>Matchup</th>
@@ -27,7 +28,41 @@
 				<th>Pick</th>
 				<th>Wager</th>
 			</tr>
-		    <c:forEach items="${allWagers}" var="wager">
+		    <c:forEach items="${spreadWagers}" var="wager">
+		    	<tr>
+		    		<td><a href="${wager.matchupLink}">${wager.matchup}</a></td>
+		    		<td><a href="${wager.bettor}">${wager.bettorName}</a></td>
+		    		<td>${wager.selection}</td>
+		    		<td>${wager.amount}</td>
+		    	</tr>
+		    </c:forEach>
+	    </table>
+	    <h2>Money Line</h2>
+	    <table class="contest">
+		    <tr>
+				<th>Matchup</th>
+				<th>Bettor</th>
+				<th>Pick</th>
+				<th>Wager</th>
+			</tr>
+		    <c:forEach items="${moneylineWagers}" var="wager">
+		    	<tr>
+		    		<td><a href="${wager.matchupLink}">${wager.matchup}</a></td>
+		    		<td><a href="${wager.bettor}">${wager.bettorName}</a></td>
+		    		<td>${wager.selection}</td>
+		    		<td>${wager.amount}</td>
+		    	</tr>
+		    </c:forEach>
+	    </table>
+	    <h2>Over/Under</h2>
+	    <table class="contest">
+		    <tr>
+				<th>Matchup</th>
+				<th>Bettor</th>
+				<th>Pick</th>
+				<th>Wager</th>
+			</tr>
+		    <c:forEach items="${overunderWagers}" var="wager">
 		    	<tr>
 		    		<td><a href="${wager.matchupLink}">${wager.matchup}</a></td>
 		    		<td><a href="${wager.bettor}">${wager.bettorName}</a></td>

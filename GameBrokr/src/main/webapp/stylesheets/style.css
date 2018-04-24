@@ -23,7 +23,7 @@ li a:hover {
 table {
 	font-family: arial, sans-serif;
 	border-collapse: collapse;
-	width: 75%;
+	width: 90%;
 }
 
 td, th {
@@ -33,9 +33,9 @@ td, th {
 }
 
 /* collapse leaderboard Rank column to fit contents */
-tr td:first-child {
+tr td {
     width:1%;
-    white-space:nowrap;
+    /*white-space:nowrap;*/
 }
 
 table.contest tr:nth-child(even),table.wager tr:nth-child(even), table.bettor tr:nth-child(even) {
@@ -56,7 +56,7 @@ div.userdetail, div.contestdetail {
 }
 
 div.newContestForm , div.resolveContestForm, div.wagerForm {
-    width: 15%;
+    width: 20%;
     margin-right: 5%;
     float: right;
     text-align: left;
@@ -68,5 +68,5 @@ div.newContestForm , div.resolveContestForm, div.wagerForm {
 
 /* group of wager tables to all be horizontally aligned */
 div.tables {
-    width: 80%;
+    width: 75%;
 }

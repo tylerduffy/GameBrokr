@@ -3,6 +3,7 @@
   autoGenerate="true">
     <datastore-index kind="Wager">
         <property name="resolved" />
+        <property name="type" />
         <property name="date" direction="desc" />
     </datastore-index>
     <datastore-index kind="Wager">
