@@ -37,89 +37,91 @@
 			</c:if>
 			
 			<h4>${contest.date}</h4>
+			<h4>Date String: ${datestr}</h4>
 		</div>
-		<c:if test = "${!contest.resolved}">
+		<c:if test = "${!contest.resolved && open}">
+			<c:if test = "${canSpread}">
+				<div class="wagerForm">
+					<h2>Bet the Spread</h2>
+					<form method="POST" action="/placebet">
+						<input type="hidden" name="contestid" id="contestid" value="${contest.id}"/>
+						<input type="hidden" name="type" id="type" value="spread"/>
+						<label for="selection">Selection </label>
+						<select name="selection" id="selection">
+							<option disabled selected value="">-- make your pick --</option>
+						 	<option value="favorite">${contest.favorite} (-${contest.spread})</option>
+						 	<option value="dog">${contest.dog} (+${contest.spread})</option>
+						</select>
+						<br>
+						<label for="wageramount">Wager ($) </label>
+						<input type="number" name="wageramount" id="wageramount" class="form-control"/>
+						<br>
+						<button type="submit">Submit</button>
+					</form>
+		    	</div>
+	    	</c:if>
+	
+	    	<c:if test = "${canMoneyline}">
+		    	<div class="wagerForm">
+					<h2>Bet the Money Line</h2>
+					<form method="POST" action="/placebet">
+						<input type="hidden" name="contestid" id="contestid" value="${contest.id}"/>
+						<input type="hidden" name="type" id="type" value="moneyline"/>
+						<label for="selection">Selection </label>
+						<select name="selection" id="selection">
+							<option disabled selected value="">-- make your pick --</option>
+						 	<option value="favorite">${contest.favorite} (-${contest.favoriteline})</option>
+						 	<option value="dog">${contest.dog} (+${contest.dogline})</option>
+						</select>
+						<br>
+						<label for="wageramount">Wager ($) </label>
+						<input type="number" name="wageramount" id="wageramount" class="form-control"/>
+						<br>
+						<button type="submit">Submit</button>
+					</form>
+		    	</div>
+	    	</c:if>
+	
+	    	<c:if test = "${canOverunder}">
+		    	<div class="wagerForm">
+					<h2>Bet the Over/Under</h2>
+					<form method="POST" action="/placebet">
+						<input type="hidden" name="contestid" id="contestid" value="${contest.id}"/>
+						<input type="hidden" name="type" id="type" value="overunder"/>
+						<label for="selection">Selection </label>
+						<select name="selection" id="selection">
+							<option disabled selected value="">-- make your pick --</option>
+						 	<option value="over">Over (&gt;${contest.overunder})</option>
+						 	<option value="under">Under (&lt;${contest.overunder})</option>
+						</select>
+						<br>
+						<label for="wageramount">Wager ($) </label>
+						<input type="number" name="wageramount" id="wageramount" class="form-control"/>
+						<br>
+						<button type="submit">Submit</button>
+					</form>
+		    	</div>
+	    	</c:if>
+    	</c:if>
 		
-		<c:if test = "${canSpread}">
-		<div class="wagerForm">
-			<h2>Bet the Spread</h2>
-			<form method="POST" action="/placebet">
-				<input type="hidden" name="contestid" id="contestid" value="${contest.id}"/>
-				<input type="hidden" name="type" id="type" value="spread"/>
-				<label for="selection">Selection </label>
-				<select name="selection" id="selection">
-					<option disabled selected value="">-- make your pick --</option>
-				 	<option value="favorite">${contest.favorite} (-${contest.spread})</option>
-				 	<option value="dog">${contest.dog} (+${contest.spread})</option>
-				</select>
-				<br>
-				<label for="wageramount">Wager ($) </label>
-				<input type="number" name="wageramount" id="wageramount" class="form-control"/>
-				<br>
-				<button type="submit">Submit</button>
-			</form>
-    	</div>
-    	</c:if>
-
-    	<c:if test = "${canMoneyline}">
-    	<div class="wagerForm">
-			<h2>Bet the Money Line</h2>
-			<form method="POST" action="/placebet">
-				<input type="hidden" name="contestid" id="contestid" value="${contest.id}"/>
-				<input type="hidden" name="type" id="type" value="moneyline"/>
-				<label for="selection">Selection </label>
-				<select name="selection" id="selection">
-					<option disabled selected value="">-- make your pick --</option>
-				 	<option value="favorite">${contest.favorite} (-${contest.favoriteline})</option>
-				 	<option value="dog">${contest.dog} (+${contest.dogline})</option>
-				</select>
-				<br>
-				<label for="wageramount">Wager ($) </label>
-				<input type="number" name="wageramount" id="wageramount" class="form-control"/>
-				<br>
-				<button type="submit">Submit</button>
-			</form>
-    	</div>
-    	</c:if>
-
-    	<c:if test = "${canOverunder}">
-    	<div class="wagerForm">
-			<h2>Bet the Over/Under</h2>
-			<form method="POST" action="/placebet">
-				<input type="hidden" name="contestid" id="contestid" value="${contest.id}"/>
-				<input type="hidden" name="type" id="type" value="overunder"/>
-				<label for="selection">Selection </label>
-				<select name="selection" id="selection">
-					<option disabled selected value="">-- make your pick --</option>
-				 	<option value="over">Over (&gt;${contest.overunder})</option>
-				 	<option value="under">Under (&lt;${contest.overunder})</option>
-				</select>
-				<br>
-				<label for="wageramount">Wager ($) </label>
-				<input type="number" name="wageramount" id="wageramount" class="form-control"/>
-				<br>
-				<button type="submit">Submit</button>
-			</form>
-    	</div>
-    	</c:if>
-		
-		<div class="resolveContestForm">
-			<h2>Resolve Contest</h2>
-			<form method="POST" action="/resolvecontest">
-				<div>
-					<input type="hidden" name="contestid" id="contestid" value="${contest.id}"/>
-				</div>
-				<div>
-					<label for="favoritescore">${contest.favorite} </label>
-					<input type="number" name="favoritescore" id="favoritescore" required class="form-control"/>
-				</div>
-				<div>
-					<label for="dogscore">${contest.dog} </label>
-					<input type="number" name="dogscore" id="dogscore" required class="form-control"/>
-				</div>
-				<button type="submit">Submit</button>
-			</form>
-    	</div>
+		<c:if test="${!contest.resolved && isAdmin && !open}">
+			<div class="resolveContestForm">
+				<h2>Resolve Contest</h2>
+				<form method="POST" action="/resolvecontest">
+					<div>
+						<input type="hidden" name="contestid" id="contestid" value="${contest.id}"/>
+					</div>
+					<div>
+						<label for="favoritescore">${contest.favorite} </label>
+						<input type="number" name="favoritescore" id="favoritescore" required class="form-control"/>
+					</div>
+					<div>
+						<label for="dogscore">${contest.dog} </label>
+						<input type="number" name="dogscore" id="dogscore" required class="form-control"/>
+					</div>
+					<button type="submit">Submit</button>
+				</form>
+	    	</div>
     	</c:if>
     	
     	<div class="tables">

@@ -8,6 +8,8 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.google.appengine.api.users.UserService;
+import com.google.appengine.api.users.UserServiceFactory;
 import com.google.cloud.datastore.Datastore;
 import com.google.cloud.datastore.DatastoreOptions;
 import com.google.cloud.datastore.Entity;
@@ -26,6 +28,7 @@ import javabeans.ContestBean;
 public class ViewContestsServlet extends HttpServlet {
 
 	Datastore datastore;
+	UserService userService;
 	
 	/**
 	 * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse response)
@@ -50,6 +53,7 @@ public class ViewContestsServlet extends HttpServlet {
 			bean.setSpread(getSpread(result.getDouble("spread")));
 			allContests.add(bean);
 		});
+		request.setAttribute("isAdmin", userService.isUserAdmin());
 		request.setAttribute("allContests", allContests);
 	    request.getRequestDispatcher("/WEB-INF/jsp/contests.jsp").forward(request, response);
 	}
@@ -65,6 +69,7 @@ public class ViewContestsServlet extends HttpServlet {
 	public void init() throws ServletException {
 //		setup datastore service
 		datastore = DatastoreOptions.getDefaultInstance().getService();
+		userService = UserServiceFactory.getUserService();
 	}
 	
 	private String processOdds(double value) {

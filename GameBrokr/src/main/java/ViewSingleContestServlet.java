@@ -1,5 +1,6 @@
 
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 
@@ -9,6 +10,9 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.google.appengine.api.users.UserService;
+import com.google.appengine.api.users.UserServiceFactory;
+import com.google.cloud.Timestamp;
 import com.google.cloud.datastore.Datastore;
 import com.google.cloud.datastore.DatastoreOptions;
 import com.google.cloud.datastore.Entity;
@@ -33,6 +37,7 @@ public class ViewSingleContestServlet extends HttpServlet {
 	Datastore datastore;
 	KeyFactory keyFactory;
 	Key contestKey;
+	UserService userService;
 
 	/**
 	 * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse
@@ -65,6 +70,8 @@ public class ViewSingleContestServlet extends HttpServlet {
 					contestBean.setDogresult(String.valueOf(contest.getLong("dogresult")));
 				}
 				
+				SimpleDateFormat sdf = new SimpleDateFormat("E MM/dd/yy hh:mm a XXX");
+				
 				request.setAttribute("contest", contestBean);
 				request.setAttribute("spreadWagers", fillBeans("spread"));
 				request.setAttribute("moneylineWagers", fillBeans("moneyline"));
@@ -72,6 +79,9 @@ public class ViewSingleContestServlet extends HttpServlet {
 				request.setAttribute("canSpread", canSpread(contestBean));
 				request.setAttribute("canMoneyline", canMoneyline(contestBean));
 				request.setAttribute("canOverunder", canOverunder(contestBean));
+				request.setAttribute("datestr", sdf.format(new Date()));
+				request.setAttribute("isAdmin", userService.isUserAdmin());
+				request.setAttribute("open", contestBean.getDate().after(new Date()));
 			    request.getRequestDispatcher("/WEB-INF/jsp/contest.jsp").forward(request, response);
 				
 			} else {
@@ -99,6 +109,7 @@ public class ViewSingleContestServlet extends HttpServlet {
 		// setup datastore service
 		datastore = DatastoreOptions.getDefaultInstance().getService();
 		keyFactory = datastore.newKeyFactory().setKind("Contest");
+		userService = UserServiceFactory.getUserService();
 	}
 	
 	private String getBettor(Entity entity) {

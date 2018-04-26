@@ -34,10 +34,8 @@ public class ResolveContestServlet extends HttpServlet {
 	 * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse response)
 	 */
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		PrintWriter out = response.getWriter();
-		out.println("Sorry, nothing here! Please return to the home page.");
-		out.println("<br><a href=\"../index.jsp\">Go Home</a>");
-		out.close();
+		request.setAttribute("errorMsg", "Nothing here! Please return to the home page.");
+	    request.getRequestDispatcher("/WEB-INF/jsp/error.jsp").forward(request, response);
 	}
 
 	/**
@@ -131,7 +129,7 @@ public class ResolveContestServlet extends HttpServlet {
 					long baseline = 100;
 					long amount = (long) result.getValue("amount").get();
 					double multiplier = baseline / favoriteline;
-					long payout = (long) (multiplier * amount);
+					long payout = (long) (Math.ceil(multiplier * amount));
 					
 					bettorWin(bettor, payout + amount);
 					resolveWager(result, true, payout);
@@ -149,7 +147,7 @@ public class ResolveContestServlet extends HttpServlet {
 					long baseline = 100;
 					long amount = (long) result.getValue("amount").get();
 					double multiplier = dogline / baseline;
-					long payout = (long) (multiplier * amount);
+					long payout = (long) (Math.ceil(multiplier * amount));
 					
 					bettorWin(bettor, payout + amount);
 					resolveWager(result, true, payout);

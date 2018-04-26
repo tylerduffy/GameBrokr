@@ -19,6 +19,7 @@
     <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c"%>
 
 	<div class="container">
+	<c:if test = "${isAdmin}">
 		<div class="newContestForm">
 			<h2>
 			  Add a New Contest
@@ -52,10 +53,20 @@
 			    <input type="number" step="0.1" name="overunder" id="overunder" class="form-control" />
 			  </div>
 			  <br>
+			  <div>
+			  	<label for="gamedate">Date </label>
+			  	<input type="date" name="gamedate" id="gamedate" placeholder="yyyy-mm-dd">
+			  </div>
+			  <br>
+			  <div>
+			  	<label for="gametime">Time (EST) </label>
+			  	<input type="time" name="gametime" id="gametime" placeholder="hh:mm">
+			  </div>
+			  <br>
 			  <button type="submit">Add</button>
 			</form>
 	    </div>
-	    
+	    </c:if>
 		<div class="tables">
 			<h1>Contests</h1>
 		    <table class="contest">
