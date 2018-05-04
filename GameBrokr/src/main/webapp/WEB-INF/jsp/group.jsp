@@ -127,7 +127,7 @@
 				    		<td><a href="${wager.matchupLink}">${wager.matchup}</a></td>
 				    		<td><a href="${wager.bettor}">${wager.bettorName}</a></td>
 				    		<td>${wager.selection}</td>
-				    		<td>${wager.result}</td>
+				    		<td class="${wager.winloss}">${wager.result}</td>
 				    	</tr>
 				    </c:forEach>
 			    </table>
@@ -147,7 +147,7 @@
 				    		<td><a href="${wager.matchupLink}">${wager.matchup}</a></td>
 				    		<td><a href="${wager.bettor}">${wager.bettorName}</a></td>
 				    		<td>${wager.selection}</td>
-				    		<td>${wager.result}</td>
+				    		<td class="${wager.winloss}">${wager.result}</td>
 				    	</tr>
 				    </c:forEach>
 			    </table>
@@ -167,7 +167,7 @@
 				    		<td><a href="${wager.matchupLink}">${wager.matchup}</a></td>
 				    		<td><a href="${wager.bettor}">${wager.bettorName}</a></td>
 				    		<td>${wager.selection}</td>
-				    		<td>${wager.result}</td>
+				    		<td class="${wager.winloss}">${wager.result}</td>
 				    	</tr>
 				    </c:forEach>
 			    </table>

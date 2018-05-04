@@ -144,6 +144,11 @@ public class ViewSingleGroupServlet extends HttpServlet {
 				bean.setSelection(getPick(result));
 				if (!open) {
 					bean.setResult(result.getString("result"));
+					if (bean.getResult().contains("W")) {
+						bean.setWinloss("win");
+					} else {
+						bean.setWinloss("loss");
+					}
 				} else {
 					bean.setAmount(getWager(result));
 				}

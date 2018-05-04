@@ -241,6 +241,11 @@ public class ViewSingleContestServlet extends HttpServlet {
 				bean.setSelection(getPick(result));
 				if (result.getBoolean("resolved")) {
 					bean.setAmount(getResultReport(result));
+					if (bean.getAmount().contains("W")) {
+						bean.setWinloss("win");
+					} else {
+						bean.setWinloss("loss");
+					}
 				} else {
 					bean.setAmount(getWager(result));
 				}

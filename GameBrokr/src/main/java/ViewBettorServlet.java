@@ -82,6 +82,11 @@ public class ViewBettorServlet extends HttpServlet {
 						if (result.getBoolean("resolved")) {
 							// closed wager
 							bean.setResult(result.getString("result"));
+							if (result.getString("result").contains("W")) {
+								bean.setWinloss("win");
+							} else {
+								bean.setWinloss("loss");
+							}
 							if (isDefaultGroup(group.getKey().getId())) {
 								// proprietary wager
 								closedWagers.add(bean);

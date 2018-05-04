@@ -16,6 +16,7 @@ public class WagerBean implements Serializable {
 	private String result;
 	private String selection;
 	private String type;
+	private String winloss;
 
 	/**
 	 * 
@@ -108,5 +109,13 @@ public class WagerBean implements Serializable {
 
 	public void setType(String type) {
 		this.type = type;
+	}
+
+	public String getWinloss() {
+		return winloss;
+	}
+
+	public void setWinloss(String winloss) {
+		this.winloss = winloss;
 	}
 }

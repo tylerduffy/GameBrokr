@@ -165,7 +165,7 @@
 			    	<tr>
 			    		<td><a href="${wager.bettor}">${wager.bettorName}</a></td>
 			    		<td>${wager.selection}</td>
-			    		<td>${wager.amount}</td>
+			    		<td <c:if test = "${contest.resolved}">class="${wager.winloss}"</c:if>>${wager.amount}</td>
 			    	</tr>
 			    </c:forEach>
 		    </table>
@@ -181,7 +181,7 @@
 			    	<tr>
 			    		<td><a href="${wager.bettor}">${wager.bettorName}</a></td>
 			    		<td>${wager.selection}</td>
-			    		<td>${wager.amount}</td>
+			    		<td <c:if test = "${contest.resolved}">class="${wager.winloss}"</c:if>>${wager.amount}</td>
 			    	</tr>
 			    </c:forEach>
 		    </table>
@@ -197,7 +197,7 @@
 			    	<tr>
 			    		<td><a href="${wager.bettor}">${wager.bettorName}</a></td>
 			    		<td>${wager.selection}</td>
-			    		<td>${wager.amount}</td>
+			    		<td <c:if test = "${contest.resolved}">class="${wager.winloss}"</c:if>>${wager.amount}</td>
 			    	</tr>
 			    </c:forEach>
 		    </table>

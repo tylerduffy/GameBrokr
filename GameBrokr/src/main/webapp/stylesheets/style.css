@@ -84,3 +84,11 @@ summary {
     font-size: 1em;
     font-weight: bold;
 }
+
+td.win {
+    color: green;
+}
+
+td.loss {
+    color: red;
+}
