@@ -11,11 +11,11 @@
 	  <li><a href="/index.jsp">Home</a></li>
 	  <li><a href="/contests">Contests</a></li>
 	  <li><a href="/wagers">Wagers</a></li>
+	  <li><a href="/groups">Groups</a></li>
 	  <li><a href="/leaderboard">Leaderboard</a></li>
 	  <li style="float:right"><a href="/profile">Profile</a></li>
 	</ul>
 	
-    <!-- Sample Form From GAE help pages "Getting Started" -->
     <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c"%>
 
 	<div class="container">
@@ -56,6 +56,14 @@
 						<label for="wageramount">Wager ($) </label>
 						<input type="number" name="wageramount" id="wageramount" class="form-control"/>
 						<br>
+						<label for="group">Group </label>
+						<select name="group" id="group" class="form-control">
+							<option value="0">Open (Default)</option>
+							<c:forEach items="${groups}" var="group">
+							<option value="${group.id}">${group.name}</option>
+							</c:forEach>
+						</select>
+						<br>
 						<button type="submit">Submit</button>
 					</form>
 		    	</div>
@@ -77,6 +85,14 @@
 						<label for="wageramount">Wager ($) </label>
 						<input type="number" name="wageramount" id="wageramount" class="form-control"/>
 						<br>
+						<label for="group">Group </label>
+						<select name="group" id="group" class="form-control">
+							<option value="0">Open (Default)</option>
+							<c:forEach items="${groups}" var="group">
+							<option value="${group.id}">${group.name}</option>
+							</c:forEach>
+						</select>
+						<br>
 						<button type="submit">Submit</button>
 					</form>
 		    	</div>
@@ -97,6 +113,14 @@
 						<br>
 						<label for="wageramount">Wager ($) </label>
 						<input type="number" name="wageramount" id="wageramount" class="form-control"/>
+						<br>
+						<label for="group">Group </label>
+						<select name="group" id="group" class="form-control">
+							<option value="0">Open (Default)</option>
+							<c:forEach items="${groups}" var="group">
+							<option value="${group.id}">${group.name}</option>
+							</c:forEach>
+						</select>
 						<br>
 						<button type="submit">Submit</button>
 					</form>

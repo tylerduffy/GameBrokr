@@ -77,7 +77,10 @@ public class CreateContestServlet extends HttpServlet {
 	
 	private Date parseDate(String gamedate, String gametime) {
 		SimpleDateFormat input = new SimpleDateFormat("yyyy-MM-ddhh:mmXXX");
-		String gamezone = "-05:00";
+		// From March 11 @ 2:00 AM to November 4 @ 2:00 AM,
+		// this needs to be -4:00 for EST Daylight Savings Time.
+		// Otherwise -5:00 for EST
+		String gamezone = "-04:00";
 		try {
 			Date date = input.parse(gamedate+gametime+gamezone);
 			return date;

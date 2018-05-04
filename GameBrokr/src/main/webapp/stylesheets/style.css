@@ -42,6 +42,15 @@ table.contest tr:nth-child(even),table.wager tr:nth-child(even), table.bettor tr
 	background-color: #dddddd;
 }
 
+div.pad {
+    padding-left: 5%;
+}
+
+div.non-container {
+	width: 70%;
+	margin-left: 10%;
+}
+
 div.container {
 	text-align: center;
 }
@@ -69,4 +78,9 @@ div.newContestForm , div.resolveContestForm, div.wagerForm {
 /* group of wager tables to all be horizontally aligned */
 div.tables {
     width: 75%;
+}
+
+summary {
+    font-size: 1em;
+    font-weight: bold;
 }

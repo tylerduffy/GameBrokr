@@ -33,8 +33,26 @@
         <property name="type" />
         <property name="date" direction="desc" />
     </datastore-index>
+        <datastore-index kind="Wager">
+        <property name="group" />
+        <property name="type" />
+        <property name="resolved" />
+        <property name="date" direction="desc" />
+    </datastore-index>
     <datastore-index kind="Contest">
         <property name="resolved" />
         <property name="date" direction="desc" />
+    </datastore-index>
+    <datastore-index kind="Membership">
+        <property name="group" />
+        <property name="count" direction="desc" />
+    </datastore-index>
+    <datastore-index kind="Membership">
+        <property name="user" />
+        <property name="group" />
+    </datastore-index>
+    <datastore-index kind="Membership">
+        <property name="group" />
+        <property name="bank" direction="desc" />
     </datastore-index>
 </datastore-indexes>

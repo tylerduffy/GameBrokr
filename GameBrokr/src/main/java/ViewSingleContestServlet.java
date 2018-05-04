@@ -25,6 +25,7 @@ import com.google.cloud.datastore.StructuredQuery.OrderBy;
 import com.google.cloud.datastore.StructuredQuery.PropertyFilter;
 
 import javabeans.ContestBean;
+import javabeans.GroupBean;
 import javabeans.WagerBean;
 
 /**
@@ -36,6 +37,7 @@ public class ViewSingleContestServlet extends HttpServlet {
 
 	Datastore datastore;
 	KeyFactory keyFactory;
+	KeyFactory bettorKeyFactory;
 	Key contestKey;
 	UserService userService;
 
@@ -47,6 +49,7 @@ public class ViewSingleContestServlet extends HttpServlet {
 			throws ServletException, IOException {
 		
 		if (request.getParameter("contest_id") != null) {
+			Key bettorKey = bettorKeyFactory.newKey(userService.getCurrentUser().getUserId());
 			
 			long entID = Long.parseLong(request.getParameter("contest_id"));
 			contestKey = keyFactory.newKey(entID);
@@ -72,7 +75,31 @@ public class ViewSingleContestServlet extends HttpServlet {
 				
 				SimpleDateFormat sdf = new SimpleDateFormat("E MM/dd/yy hh:mm a XXX");
 				
+				Query<Entity> groupQuery = Query.newEntityQueryBuilder().setKind("Membership")
+						.setFilter(PropertyFilter.eq("user", bettorKey))
+						.build();
+				
+				QueryResults<Entity> groupResults = datastore.run(groupQuery);
+				
+				ArrayList<GroupBean> groups = new ArrayList<GroupBean>();
+				
+				if (groupResults.hasNext()) {
+					groupResults.forEachRemaining((result) -> {
+						GroupBean bean = new GroupBean();
+						Entity group = datastore.get(result.getKey("group"));
+						if (group != null) {
+							bean.setName(group.getString("name"));
+							bean.setId(String.valueOf(group.getKey().getNameOrId()));
+						} else {
+							bean.setName("Group Name Not Found");
+							bean.setId("0");
+						}
+						groups.add(bean);
+					});
+				}
+				
 				request.setAttribute("contest", contestBean);
+				request.setAttribute("groups", groups);
 				request.setAttribute("spreadWagers", fillBeans("spread"));
 				request.setAttribute("moneylineWagers", fillBeans("moneyline"));
 				request.setAttribute("overunderWagers", fillBeans("overunder"));
@@ -109,6 +136,7 @@ public class ViewSingleContestServlet extends HttpServlet {
 		// setup datastore service
 		datastore = DatastoreOptions.getDefaultInstance().getService();
 		keyFactory = datastore.newKeyFactory().setKind("Contest");
+		bettorKeyFactory = datastore.newKeyFactory().setKind("Bettor");
 		userService = UserServiceFactory.getUserService();
 	}
 	

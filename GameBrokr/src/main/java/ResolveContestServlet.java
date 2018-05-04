@@ -74,10 +74,10 @@ public class ResolveContestServlet extends HttpServlet {
 					long amount = (long) result.getValue("amount").get();
 					long payout = 2 * amount;
 					
-					bettorWin(bettor, payout);
+					bettorWin(bettor, result, payout);
 					resolveWager(result, true, amount);
 				} else {
-					bettorLose(bettor);
+					bettorLose(bettor, result);
 					resolveWager(result, false, (long) result.getValue("amount").get());
 				}
 			});
@@ -91,10 +91,10 @@ public class ResolveContestServlet extends HttpServlet {
 					long amount = (long) result.getValue("amount").get();
 					long payout = 2 * amount;
 					
-					bettorWin(bettor, payout);
+					bettorWin(bettor, result, payout);
 					resolveWager(result, true, amount);
 				} else {
-					bettorLose(bettor);
+					bettorLose(bettor, result);
 					resolveWager(result, false, (long) result.getValue("amount").get());
 				}
 			});
@@ -106,7 +106,7 @@ public class ResolveContestServlet extends HttpServlet {
 				Entity bettor = datastore.get(result.getKey("bettor"));
 				long payout = amount;
 
-				bettorWin(bettor, payout);
+				bettorWin(bettor, result, payout);
 				resolveWager(result, true, 0);
 			});
 		}
@@ -131,10 +131,10 @@ public class ResolveContestServlet extends HttpServlet {
 					double multiplier = baseline / favoriteline;
 					long payout = (long) (Math.ceil(multiplier * amount));
 					
-					bettorWin(bettor, payout + amount);
+					bettorWin(bettor, result, payout + amount);
 					resolveWager(result, true, payout);
 				} else {
-					bettorLose(bettor);
+					bettorLose(bettor, result);
 					resolveWager(result, false, (long) result.getValue("amount").get());
 				}
 			});
@@ -149,10 +149,10 @@ public class ResolveContestServlet extends HttpServlet {
 					double multiplier = dogline / baseline;
 					long payout = (long) (Math.ceil(multiplier * amount));
 					
-					bettorWin(bettor, payout + amount);
+					bettorWin(bettor, result, payout + amount);
 					resolveWager(result, true, payout);
 				} else {
-					bettorLose(bettor);
+					bettorLose(bettor, result);
 					resolveWager(result, false, (long) result.getValue("amount").get());
 				}
 			});
@@ -164,7 +164,7 @@ public class ResolveContestServlet extends HttpServlet {
 				long amount = (long) result.getValue("amount").get();
 				long payout = amount;
 
-				bettorWin(bettor, payout);
+				bettorWin(bettor, result, payout);
 				resolveWager(result, true, 0);
 			});
 		}
@@ -187,10 +187,10 @@ public class ResolveContestServlet extends HttpServlet {
 					long amount = (long) result.getValue("amount").get();
 					long payout = 2 * amount;
 
-					bettorWin(bettor, payout);
+					bettorWin(bettor, result, payout);
 					resolveWager(result, true, amount);
 				} else {
-					bettorLose(bettor);
+					bettorLose(bettor, result);
 					resolveWager(result, false, (long) result.getValue("amount").get());
 				}
 			});
@@ -203,10 +203,10 @@ public class ResolveContestServlet extends HttpServlet {
 					long amount = (long) result.getValue("amount").get();
 					long payout = 2 * amount;
 
-					bettorWin(bettor, payout);
+					bettorWin(bettor, result, payout);
 					resolveWager(result, true, amount);
 				} else {
-					bettorLose(bettor);
+					bettorLose(bettor, result);
 					resolveWager(result, false, (long) result.getValue("amount").get());
 				}
 			});
@@ -218,7 +218,7 @@ public class ResolveContestServlet extends HttpServlet {
 				long amount = (long) result.getValue("amount").get();
 				long payout = amount;
 				
-				bettorWin(bettor, payout);
+				bettorWin(bettor, result, payout);
 				resolveWager(result, true, 0);
 			});
 		}
@@ -248,21 +248,68 @@ public class ResolveContestServlet extends HttpServlet {
 		contestKeyFactory = datastore.newKeyFactory().setKind("Contest");
 	}
 	
-	private void bettorWin(Entity bettor, long payout) {
-		long bank = (long) bettor.getValue("bank").get();
-		long wins = (long) bettor.getValue("win").get();
+	private void bettorWin(Entity bettor, Entity wager, long payout) {
+		if (isDefaultGroup(wager.getKey("group").getId())) {
+			// proprietary wager, continue with default workflow
+			long bank = (long) bettor.getValue("bank").get();
+			long wins = (long) bettor.getValue("win").get();
+			
+			Entity updatedBettor = Entity.newBuilder(bettor)
+					.set("bank", bank + payout)
+					.set("win", wins + 1)
+					.build();
+			datastore.update(updatedBettor);
+		} else {
+			// group wager, continue with group workflow
+			Query<Entity> membershipQuery = Query.newEntityQueryBuilder().setKind("Membership")
+					.setFilter(CompositeFilter.and(
+							PropertyFilter.eq("user", bettor.getKey()),
+							PropertyFilter.eq("group", wager.getKey("group"))))
+					.build();
+			
+			QueryResults<Entity> membershipResults = datastore.run(membershipQuery);
+			if (membershipResults.hasNext()) {
+				Entity membership = membershipResults.next();
+				long bank = (long) membership.getValue("bank").get();
+				long wins = (long) membership.getValue("win").get();
+				
+				Entity updatedMembership = Entity.newBuilder(membership)
+						.set("bank", bank + payout)
+						.set("win", wins + 1)
+						.build();
+				datastore.update(updatedMembership);
+			}
+			// TODO: some form of error handling in case group/user pair cannot be found
+		}
 		
-		Entity updatedBettor = Entity.newBuilder(bettor)
-				.set("bank", bank + payout)
-				.set("win", wins + 1)
-				.build();
-		datastore.update(updatedBettor);
+		
 	}
 	
-	private void bettorLose(Entity bettor) {
-		long losses = (long) bettor.getValue("loss").get();
-		Entity updatedBettor = Entity.newBuilder(bettor).set("loss", losses + 1).build();
-		datastore.update(updatedBettor);
+	private void bettorLose(Entity bettor, Entity wager) {
+		if (isDefaultGroup(wager.getKey("group").getId())) {
+			// proprietary wager, continue with default workflow
+			long losses = (long) bettor.getValue("loss").get();
+			Entity updatedBettor = Entity.newBuilder(bettor).set("loss", losses + 1).build();
+			datastore.update(updatedBettor);
+		} else {
+			// group wager, continue with group workflow
+			Query<Entity> membershipQuery = Query.newEntityQueryBuilder().setKind("Membership")
+					.setFilter(CompositeFilter.and(
+							PropertyFilter.eq("user", bettor.getKey()),
+							PropertyFilter.eq("group", wager.getKey("group"))))
+					.build();
+			
+			QueryResults<Entity> membershipResults = datastore.run(membershipQuery);
+			if (membershipResults.hasNext()) {
+				Entity membership = membershipResults.next();
+				long losses = (long) membership.getValue("loss").get();
+				
+				Entity updatedMembership = Entity.newBuilder(membership).set("loss", losses + 1).build();
+				datastore.update(updatedMembership);
+			}
+			// TODO: some form of error handling in case group/user pair cannot be found
+		}
+		
 	}
 	
 	private void resolveWager(Entity wager, boolean win, long payout) {
@@ -275,6 +322,10 @@ public class ResolveContestServlet extends HttpServlet {
 				.set("result", resultStr)
 				.build();
 		datastore.update(updatedWager);
+	}
+	
+	private boolean isDefaultGroup(long groupId) {
+		return (groupId == 5671831268753408L);
 	}
 
 }

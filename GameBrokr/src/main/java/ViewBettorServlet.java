@@ -24,6 +24,7 @@ import com.google.cloud.datastore.StructuredQuery.OrderBy;
 import com.google.cloud.datastore.StructuredQuery.PropertyFilter;
 
 import javabeans.BettorBean;
+import javabeans.GroupBean;
 import javabeans.WagerBean;
 
 /**
@@ -68,6 +69,8 @@ public class ViewBettorServlet extends HttpServlet {
 				ArrayList<WagerBean> openWagers = new ArrayList<WagerBean>();
 				ArrayList<WagerBean> closedWagers = new ArrayList<WagerBean>();
 				
+				Map<String, GroupBean> groupWagerMap = new HashMap<String, GroupBean>();
+				
 				if (results.hasNext()) {
 					results.forEachRemaining((result) -> {
 						WagerBean bean = new WagerBean();
@@ -75,19 +78,55 @@ public class ViewBettorServlet extends HttpServlet {
 						bean.setMatchupLink(getMatchupLink(result));
 						bean.setSelection(getPick(result));
 						bean.setType(typeMap.get(result.getString("type")));
+						Entity group = datastore.get(result.getKey("group"));
 						if (result.getBoolean("resolved")) {
+							// closed wager
 							bean.setResult(result.getString("result"));
-							closedWagers.add(bean);
+							if (isDefaultGroup(group.getKey().getId())) {
+								// proprietary wager
+								closedWagers.add(bean);
+							} else {
+								// group wager
+								if (!groupWagerMap.containsKey(group.getString("name"))) {
+									groupWagerMap.put(group.getString("name"), new GroupBean());
+								}
+								groupWagerMap.get(group.getString("name")).addClosedwager(bean);
+							}
 						} else {
+							// open wager
 							bean.setAmount(getWager(result));
-							openWagers.add(bean);
+							if (isDefaultGroup(group.getKey().getId())) {
+								// proprietary wager
+								openWagers.add(bean);
+							} else {
+								// group wager
+								if (!groupWagerMap.containsKey(group.getString("name"))) {
+									groupWagerMap.put(group.getString("name"), new GroupBean());
+								}
+								groupWagerMap.get(group.getString("name")).addOpenwager(bean);
+							}
 						}
+					});
+				}
+				
+				Query<Entity> membershipQuery = Query.newEntityQueryBuilder().setKind("Membership")
+						.setFilter(PropertyFilter.eq("user", bettorKey))
+						.build();
+				
+				QueryResults<Entity> membershipResults = datastore.run(membershipQuery);
+				
+				ArrayList<GroupBean> groups = new ArrayList<GroupBean>();
+				
+				if (membershipResults.hasNext()) {
+					membershipResults.forEachRemaining((result) -> {
+						groups.add(getGroupBean(datastore.get(result.getKey("group")), groupWagerMap));
 					});
 				}
 				
 				request.setAttribute("bettor", user);
 				request.setAttribute("openWagers", openWagers);
 				request.setAttribute("closedWagers", closedWagers);
+				request.setAttribute("groups", groups);
 			    request.getRequestDispatcher("/WEB-INF/jsp/profile.jsp").forward(request, response);
 				
 			} else {
@@ -176,5 +215,25 @@ public class ViewBettorServlet extends HttpServlet {
 	private String getWager(Entity entity) {
 		return "$" + String.valueOf(entity.getValue("amount").get());
 	}
-
+	
+	private boolean isDefaultGroup(long groupId) {
+		return (groupId == 5671831268753408L);
+	}
+	
+	private GroupBean getGroupBean(Entity group, Map<String, GroupBean> map) {
+		if (group == null) {
+			GroupBean bean = new GroupBean();
+			bean.setName("Group Name Not Found");
+			bean.setLink("../viewgroup?group_id=0");
+			return bean;
+		} else {
+			GroupBean bean = new GroupBean();
+			if (map.get(group.getString("name")) != null) {
+				bean = map.get(group.getString("name"));
+			}
+			bean.setName(group.getString("name"));
+			bean.setLink("../viewgroup?group_id=" + group.getKey().getNameOrId());
+			return bean;
+		}
+	}
 }
