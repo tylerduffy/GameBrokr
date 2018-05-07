@@ -29,8 +29,8 @@
 	  	Betting the spread is basically like giving one team a head start. When looking 
 	  	at a spread bet, you will see numbers next to one or both teams. For example, you might 
 	  	see Team 1 v. Team 2 (+5). This can also be written Team 1 (-5) v. Team 2. This means 
-	  	that at the end of the game, you either add 5 points to Team 2's score or subtract 5 
-	  	points from Team 1's score, and the winner is determined including these additional points.
+	  	that at the end of the game, you either add 5 points to the score of Team 2 or subtract 5 
+	  	points from the score of Team 1, and the winner is determined including these additional points.
 	  	If Team 1 wins by more than 5 points, Team 1 is the winning bet. If Team 2 wins OR loses 
 	  	by less than 5 points, then Team 2 is the winning bet. If Team 1 beats Team 2 by exactly 
 	  	5 points, that is called a "push", and all bettors are returned their original bet in full.
@@ -56,7 +56,7 @@
 	  	<br>
 	  	<strong>Takeaway:</strong> As is the case with a spread bet, the team with the (-) is the favorite. The 
 	  	larger the number, the heavier they are favored to win - which means you have to bet more 
-	  	money just to win the same $100. Something about risk/reward.. I don't know. On the other
+	  	money just to win the same $100. Something about risk/reward.. who knows. On the other
 	  	hand, the team with the (+) is the underdog. The larger the number, the heavier they are 
 	  	favored to lose - which means more winnings for the same $100 bet.
 	  </p>

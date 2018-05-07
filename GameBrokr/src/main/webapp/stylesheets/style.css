@@ -92,3 +92,7 @@ td.win {
 td.loss {
     color: red;
 }
+
+div.non-container {
+	text-align: justify;
+}

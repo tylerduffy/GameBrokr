@@ -1,7 +1,9 @@
 package javabeans;
 
 import java.io.Serializable;
+import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.TimeZone;
 
 public class ContestBean implements Serializable {
 
@@ -33,7 +35,13 @@ public class ContestBean implements Serializable {
 	}
 
 	public Date getDate() {
-		return date;
+		return this.date;
+	}
+	
+	public String getDatestr() {
+		SimpleDateFormat sdf = new SimpleDateFormat("E MM/dd hh:mm a");
+		sdf.setTimeZone(TimeZone.getTimeZone("US/Eastern"));
+		return sdf.format(date) + " (EST)";
 	}
 
 	public void setDate(Date date) {

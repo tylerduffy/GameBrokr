@@ -106,7 +106,7 @@ public class ViewSingleContestServlet extends HttpServlet {
 				request.setAttribute("canSpread", canSpread(contestBean));
 				request.setAttribute("canMoneyline", canMoneyline(contestBean));
 				request.setAttribute("canOverunder", canOverunder(contestBean));
-				request.setAttribute("datestr", sdf.format(new Date()));
+//				request.setAttribute("datestr", sdf.format(new Date()));
 				request.setAttribute("isAdmin", userService.isUserAdmin());
 				request.setAttribute("open", contestBean.getDate().after(new Date()));
 			    request.getRequestDispatcher("/WEB-INF/jsp/contest.jsp").forward(request, response);

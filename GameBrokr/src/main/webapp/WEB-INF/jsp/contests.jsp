@@ -85,7 +85,7 @@
 			    		<td>${contest.spread}</td>
 			    		<td>${contest.moneyline}</td>
 			    		<td>${contest.overunder}</td>
-			    		<td>Proper date TBD</td>
+			    		<td>${contest.datestr}</td>
 			    	</tr>
 			    </c:forEach>
 		    </table>

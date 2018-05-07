@@ -36,8 +36,7 @@
 				<h4>Total Points: ${contest.overunder}</h4>
 			</c:if>
 			
-			<h4>${contest.date}</h4>
-			<h4>Date String: ${datestr}</h4>
+			<h4>${contest.datestr}</h4>
 		</div>
 		<c:if test = "${!contest.resolved && open}">
 			<c:if test = "${canSpread}">
