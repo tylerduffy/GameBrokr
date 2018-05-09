@@ -36,7 +36,7 @@ public class ViewContestsServlet extends HttpServlet {
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		Query<Entity> query = Query.newEntityQueryBuilder().setKind("Contest")
 				.setFilter(PropertyFilter.eq("resolved", false))
-				.setOrderBy(OrderBy.desc("date"))
+				.setOrderBy(OrderBy.asc("date"))
 				.build();
 		QueryResults<Entity> results = datastore.run(query);
 		

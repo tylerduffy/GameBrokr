@@ -15,6 +15,7 @@ li a {
     padding: 14px 16px;
     text-decoration: none;
 }
+
 /* Change the link color to #111 (black) on hover */
 li a:hover {
     background-color: #111;
@@ -30,6 +31,11 @@ td, th {
 	border: 1px solid #dddddd;
 	text-align: center;
 	padding: 8px 10px;
+}
+
+th {
+    background-color: #333;
+    color: white;
 }
 
 /* collapse leaderboard Rank column to fit contents */
@@ -85,14 +91,42 @@ summary {
     font-weight: bold;
 }
 
+div.non-container {
+    text-align: justify;
+}
+
 td.win {
-    color: green;
+    /* "submit button" green */
+    color: #4CAF50;
+    font-weight: bold;
 }
 
 td.loss {
-    color: red;
+    /* "dark" red */
+    color: #CC0000;
 }
 
-div.non-container {
-	text-align: justify;
+button[type=submit] {
+    margin-top: 5px;
+    background-color: #333;
+    color: white;
+    padding: 6px 10px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+button[type=submit]:hover {
+    /* slightly darker green background-color: #45a049;*/
+    background-color: #4CAF50;
+}
+
+details a:link, details a:visited, td a:link, td a:visited {
+    color: #333;
+    font-weight: bold;
+}
+
+details a:hover, td a:hover {
+    /* R-H maroon */
+    color: #800000;
 }
