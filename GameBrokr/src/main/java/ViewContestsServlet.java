@@ -53,8 +53,40 @@ public class ViewContestsServlet extends HttpServlet {
 			bean.setSpread(getSpread(result.getDouble("spread")));
 			allContests.add(bean);
 		});
+		
 		request.setAttribute("isAdmin", userService.isUserAdmin());
 		request.setAttribute("allContests", allContests);
+		
+		String showHist;
+		if ((showHist = request.getParameter("showhistory")) != null) {
+			if (showHist.equals("true")) {
+				Query<Entity> queryHistory = Query.newEntityQueryBuilder().setKind("Contest")
+						.setFilter(PropertyFilter.eq("resolved", true))
+						.setOrderBy(OrderBy.desc("date"))
+						.build();
+				QueryResults<Entity> resultsHistory = datastore.run(queryHistory);
+				
+				ArrayList<ContestBean> allContestsHistory = new ArrayList<ContestBean>();
+				
+				resultsHistory.forEachRemaining((result) -> {
+					ContestBean bean = new ContestBean();
+					bean.setId("../viewcontest?contest_id=" + String.valueOf(result.getKey().getId()));
+					bean.setDate(new Date(result.getTimestamp("date").getSeconds()*1000));
+					bean.setDog(result.getString("dog"));
+					bean.setFavorite(result.getString("favorite"));
+					bean.setMoneyline(getMoneyline(result));
+					bean.setOverunder(processOdds(result.getDouble("overunder")));
+					bean.setSpread(getSpread(result.getDouble("spread")));
+					bean.setDogresult(String.valueOf(result.getLong("dogresult")));
+					bean.setFavoriteresult(String.valueOf(result.getLong("favoriteresult")));
+					allContestsHistory.add(bean);
+				});
+				
+				request.setAttribute("showHistory", true);
+				request.setAttribute("contestHistory", allContestsHistory);
+			}
+		}
+		
 	    request.getRequestDispatcher("/WEB-INF/jsp/contests.jsp").forward(request, response);
 	}
 

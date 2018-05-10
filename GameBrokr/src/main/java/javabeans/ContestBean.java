@@ -20,6 +20,12 @@ public class ContestBean implements Serializable {
 	private boolean resolved;
 	private String spread;
 	private String victor;
+	private long spreadfavoritesum;
+	private long spreaddogsum;
+	private long moneylinefavoritesum;
+	private long moneylinedogsum;
+	private long oversum;
+	private long undersum;
 	
 	/**
 	 * 
@@ -134,5 +140,53 @@ public class ContestBean implements Serializable {
 
 	public void setVictor(String victor) {
 		this.victor = victor;
+	}
+
+	public long getSpreadfavoritesum() {
+		return spreadfavoritesum;
+	}
+
+	public void setSpreadfavoritesum(long spreadfavoritesum) {
+		this.spreadfavoritesum = spreadfavoritesum;
+	}
+
+	public long getSpreaddogsum() {
+		return spreaddogsum;
+	}
+
+	public void setSpreaddogsum(long spreaddogsum) {
+		this.spreaddogsum = spreaddogsum;
+	}
+
+	public long getMoneylinefavoritesum() {
+		return moneylinefavoritesum;
+	}
+
+	public void setMoneylinefavoritesum(long moneylinefavoritesum) {
+		this.moneylinefavoritesum = moneylinefavoritesum;
+	}
+
+	public long getMoneylinedogsum() {
+		return moneylinedogsum;
+	}
+
+	public void setMoneylinedogsum(long moneylinedogsum) {
+		this.moneylinedogsum = moneylinedogsum;
+	}
+
+	public long getOversum() {
+		return oversum;
+	}
+
+	public void setOversum(long oversum) {
+		this.oversum = oversum;
+	}
+
+	public long getUndersum() {
+		return undersum;
+	}
+
+	public void setUndersum(long undersum) {
+		this.undersum = undersum;
 	}
 }

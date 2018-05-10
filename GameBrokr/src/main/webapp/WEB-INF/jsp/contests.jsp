@@ -89,7 +89,33 @@
 			    	</tr>
 			    </c:forEach>
 		    </table>
+		    <c:if test="${showHistory}">
+			<h1>Contest History</h1>
+		    <table class="contest">
+			    <tr>
+					<th>Result</th>
+					<th>Favorite</th>
+					<th>Spread</th>
+					<th>Money Line</th>
+					<th>Over/Under</th>
+					<th>Date</th>
+				</tr>
+			    <c:forEach items="${contestHistory}" var="contest">
+			    	<tr>
+			    		<td><a href="${contest.id}">${contest.favorite}, ${contest.favoriteresult} v. ${contest.dog}, ${contest.dogresult}</a></td>
+			    		<td>${contest.favorite}</td>
+			    		<td>${contest.spread}</td>
+			    		<td>${contest.moneyline}</td>
+			    		<td>${contest.overunder}</td>
+			    		<td>${contest.datestr}</td>
+			    	</tr>
+			    </c:forEach>
+		    </table>
+			</c:if>
 		</div>
+		<c:if test="${!showHistory}">
+			<p><a href="../contests?showhistory=true">Show Past Games</a></p>
+		</c:if>
     </div>
   </body>
 </html>

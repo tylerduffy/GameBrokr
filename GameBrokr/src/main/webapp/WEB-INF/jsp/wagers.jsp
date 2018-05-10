@@ -37,7 +37,7 @@
 		    	</tr>
 		    </c:forEach>
 	    </table>
-	    <h2>Money Line</h2>
+	    <h2>Moneyline</h2>
 	    <table class="contest">
 		    <tr>
 				<th>Matchup</th>

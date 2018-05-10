@@ -43,6 +43,10 @@
         <property name="resolved" />
         <property name="date" direction="asc" />
     </datastore-index>
+        <datastore-index kind="Contest">
+        <property name="resolved" />
+        <property name="date" direction="desc" />
+    </datastore-index>
     <datastore-index kind="Membership">
         <property name="group" />
         <property name="count" direction="desc" />

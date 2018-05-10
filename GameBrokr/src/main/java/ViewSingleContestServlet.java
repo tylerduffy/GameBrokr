@@ -68,12 +68,20 @@ public class ViewSingleContestServlet extends HttpServlet {
 				contestBean.setDogline(String.valueOf(contest.getDouble("dogline")));
 				contestBean.setFavoriteline(String.valueOf(contest.getDouble("favoriteline")));
 				contestBean.setOverunder(String.valueOf(contest.getDouble("overunder")));
+				// begin progress bar section
+				contestBean.setSpreadfavoritesum(contest.getLong("spreadfavoritesum"));
+				contestBean.setSpreadfavoritesum(contest.getLong("spreaddogsum"));
+				contestBean.setMoneylinefavoritesum(contest.getLong("moneylinefavoritesum"));
+				contestBean.setMoneylinedogsum(contest.getLong("moneylinedogsum"));
+				contestBean.setUndersum(contest.getLong("oversum"));
+				contestBean.setOversum(contest.getLong("undersum"));
+				// end progress bar section
 				if (contestBean.isResolved()) {
 					contestBean.setFavoriteresult(String.valueOf(contest.getLong("favoriteresult")));
 					contestBean.setDogresult(String.valueOf(contest.getLong("dogresult")));
 				}
 				
-				SimpleDateFormat sdf = new SimpleDateFormat("E MM/dd/yy hh:mm a XXX");
+//				SimpleDateFormat sdf = new SimpleDateFormat("E MM/dd/yy hh:mm a XXX");
 				
 				Query<Entity> groupQuery = Query.newEntityQueryBuilder().setKind("Membership")
 						.setFilter(PropertyFilter.eq("user", bettorKey))
@@ -106,6 +114,20 @@ public class ViewSingleContestServlet extends HttpServlet {
 				request.setAttribute("canSpread", canSpread(contestBean));
 				request.setAttribute("canMoneyline", canMoneyline(contestBean));
 				request.setAttribute("canOverunder", canOverunder(contestBean));
+				// begin progress bar section
+				request.setAttribute("spreadfavoritepercent", 
+						getWholePercent(contest.getLong("spreadfavoritesum"),contest.getLong("spreaddogsum")));
+				request.setAttribute("spreaddogpercent", 
+						getWholePercent(contest.getLong("spreaddogsum"),contest.getLong("spreadfavoritesum")));
+				request.setAttribute("moneylinefavoritepercent", 
+						getWholePercent(contest.getLong("moneylinefavoritesum"),contest.getLong("moneylinedogsum")));
+				request.setAttribute("moneylinedogpercent", 
+						getWholePercent(contest.getLong("moneylinedogsum"),contest.getLong("moneylinefavoritesum")));
+				request.setAttribute("overpercent", 
+						getWholePercent(contest.getLong("oversum"),contest.getLong("undersum")));
+				request.setAttribute("underpercent", 
+						getWholePercent(contest.getLong("undersum"),contest.getLong("oversum")));
+				// end progress bar section
 //				request.setAttribute("datestr", sdf.format(new Date()));
 				request.setAttribute("isAdmin", userService.isUserAdmin());
 				request.setAttribute("open", contestBean.getDate().after(new Date()));
@@ -198,31 +220,6 @@ public class ViewSingleContestServlet extends HttpServlet {
 		return "$" + String.valueOf(entity.getValue("amount").get());
 	}
 	
-	private String getResult(Entity wager) {
-		Entity contest = datastore.get(wager.getKey("contest"));
-		String victor = contest.getString("victor");
-		String selection = wager.getString("selection");
-		if (victor.equals("push")) {
-			return "push";
-		} else if (victor.equals(selection)) {
-			return "win";
-		}
-		return "loss";
-	}
-	
-	private String getResultReport(Entity result) {
-		String resultStr = getResult(result);
-		String resultReportString;
-		if (resultStr.equals("win")) {
-			resultReportString = "W +" + getWager(result);
-		} else if (resultStr.equals("loss")) {
-			resultReportString = "L -" + getWager(result);
-		} else {
-			resultReportString = "W +$0";
-		}
-		return resultReportString;
-	}
-	
 	private ArrayList<WagerBean> fillBeans(String type) {
 		Query<Entity> query = Query.newEntityQueryBuilder().setKind("Wager")
 				.setFilter(CompositeFilter.and(
@@ -240,7 +237,7 @@ public class ViewSingleContestServlet extends HttpServlet {
 				bean.setBettorName(getBettorName(result));
 				bean.setSelection(getPick(result));
 				if (result.getBoolean("resolved")) {
-					bean.setAmount(getResultReport(result));
+					bean.setAmount(result.getString("result"));
 					if (bean.getAmount().contains("W")) {
 						bean.setWinloss("win");
 					} else {
@@ -267,6 +264,15 @@ public class ViewSingleContestServlet extends HttpServlet {
 	
 	private boolean canOverunder(ContestBean contest) {
 		return (contest.getOverunder() != null && (Double.parseDouble(contest.getOverunder()) > -1));
+	}
+	
+	private String getWholePercent(long long1, long long2) {
+		long total = Long.sum(long1, long2);
+		if (total > 0) {
+			double quotient = (double) long1 / total;
+			return String.valueOf(Math.round(quotient * 100));
+		}
+		return String.valueOf("0");
 	}
 
 }

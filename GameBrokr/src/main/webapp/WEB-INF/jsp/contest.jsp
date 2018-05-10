@@ -70,7 +70,7 @@
 	
 	    	<c:if test = "${canMoneyline}">
 		    	<div class="wagerForm">
-					<h2>Bet the Money Line</h2>
+					<h2>Bet the Moneyline</h2>
 					<form method="POST" action="/placebet">
 						<input type="hidden" name="contestid" id="contestid" value="${contest.id}"/>
 						<input type="hidden" name="type" id="type" value="moneyline"/>
@@ -148,7 +148,24 @@
     	</c:if>
     	
     	<div class="tables">
-			<h2>Spread Wagers</h2>
+    		<c:if test="${!((spreadfavoritepercent + spreaddogpercent) > 0)}">
+    			<h2>Spread Wagers</h2>
+    		</c:if>
+    		<c:if test="${(spreadfavoritepercent + spreaddogpercent) > 0}">
+    			<div class="w3-container" style="width:90%;display:inline-block;clear:right;">
+			    	<span style="text-align:left;width:40%;display:inline-block;">${contest.favorite}</span>
+			    	<span style="text-align:center;width:18%;display:inline-block;font-size:1.8em;font-weight:bold;">Spread</span>
+			    	<span style="text-align:right;width:40%;display:inline-block;">${contest.dog}</span>
+			    	<span style="text-align:left;width:49%;display:inline-block;">${spreadfavoritepercent}%</span>
+			    	<span style="text-align:right;width:49%;display:inline-block;">${spreaddogpercent}%</span>
+				    <div class="w3-border" style="width:50%;display:inline-block;">
+					  <div class="w3-game-gray" style="height:24px;width:${spreadfavoritepercent}%;float:right;"></div>
+					</div>
+					<div class="w3-border" style="width:50%;display:inline-block;float:right;">
+					  <div class="w3-rose" style="height:24px;width:${spreaddogpercent}%;white-space:nowrap;overflow:visible;"></div>
+					</div>
+			    </div>
+    		</c:if>
 		    <table class="wager">
 			    <tr>
 					<th>Username</th>
@@ -169,7 +186,25 @@
 			    </c:forEach>
 		    </table>
 		    
-			<h2>Money Line Wagers</h2>
+		    <c:if test="${!((moneylinefavoritepercent + moneylinedogpercent) > 0)}">
+		    	<h2>Money Line Wagers</h2>
+		    </c:if>
+		    <c:if test="${(moneylinefavoritepercent + moneylinedogpercent) > 0}">
+		    	<br><br>
+				<div class="w3-container" style="width:90%;display:inline-block;clear:right;">
+			    	<span style="text-align:left;width:40%;display:inline-block;">${contest.favorite}</span>
+			    	<span style="text-align:center;width:18%;display:inline-block;font-size:1.8em;font-weight:bold;">Moneyline</span>
+			    	<span style="text-align:right;width:40%;display:inline-block;">${contest.dog}</span>
+			    	<span style="text-align:left;width:49%;display:inline-block;">${moneylinefavoritepercent}%</span>
+			    	<span style="text-align:right;width:49%;display:inline-block;">${moneylinedogpercent}%</span>
+				    <div class="w3-border" style="width:50%;display:inline-block;">
+					  <div class="w3-game-gray" style="height:24px;width:${moneylinefavoritepercent}%;float:right;"></div>
+					</div>
+					<div class="w3-border" style="width:50%;display:inline-block;float:right;">
+					  <div class="w3-rose" style="height:24px;width:${moneylinedogpercent}%;white-space:nowrap;overflow:visible;"></div>
+					</div>
+			    </div>
+		    </c:if>
 		    <table class="wager">
 			    <tr>
 					<th>Username</th>
@@ -185,7 +220,26 @@
 			    </c:forEach>
 		    </table>
 		    
-		    <h2>Over/Under Wagers</h2>
+		    <c:if test="${!((overpercent + underpercent) > 0)}">
+		    	<h2>Over/Under Wagers</h2>
+		    </c:if>
+		    <c:if test="${(overpercent + underpercent) > 0}">
+			    <br><br>
+			    <div class="w3-container" style="width:90%;display:inline-block;clear:right;">
+			    	<span style="text-align:left;width:40%;display:inline-block;">Over</span>
+			    	<span style="text-align:center;width:18%;display:inline-block;font-size:1.8em;font-weight:bold;">Over/Under</span>
+			    	<span style="text-align:right;width:40%;display:inline-block;">Under</span>
+			    	<span style="text-align:left;width:49%;display:inline-block;">${overpercent}%</span>
+			    	<span style="text-align:right;width:49%;display:inline-block;">${underpercent}%</span>
+				    <div class="w3-border" style="width:50%;display:inline-block;">
+					  <div class="w3-game-gray" style="height:24px;width:${overpercent}%;float:right;"></div>
+					</div>
+					<div class="w3-border" style="width:50%;display:inline-block;float:right;">
+					  <div class="w3-rose" style="height:24px;width:${underpercent}%;white-space:nowrap;overflow:visible;"></div>
+					</div>
+			    </div>
+		    </c:if>
+		    
 		    <table class="wager">
 			    <tr>
 					<th>Username</th>

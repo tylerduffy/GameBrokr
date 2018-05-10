@@ -73,7 +73,7 @@
 		    </details>
 		    <br>
 		    <details>
-		    	<summary>Money Line</summary>
+		    	<summary>Moneyline</summary>
 		    	<table class="wager">
 				    <tr>
 				    	<th>Matchup</th>
