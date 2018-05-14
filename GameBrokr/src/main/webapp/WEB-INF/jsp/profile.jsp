@@ -76,8 +76,8 @@
 	    		<table class="wager">
 	    			<tr>
 	    				<th>Matchup</th>
-	    				<th>Selection</th>
 	    				<th>Type</th>
+	    				<th>Selection</th>
 	    				<th>Wager</th>
 	    			</tr>
 	    			<c:forEach items="${group.openwagers}" var="wager">
@@ -93,8 +93,8 @@
 	    		<table class="wager">
 	    			<tr>
 	    				<th>Matchup</th>
-	    				<th>Selection</th>
 	    				<th>Type</th>
+	    				<th>Selection</th>
 	    				<th>Result</th>
 	    			</tr>
 	    			<c:forEach items="${group.closedwagers}" var="wager">

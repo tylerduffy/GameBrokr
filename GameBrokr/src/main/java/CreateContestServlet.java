@@ -54,6 +54,12 @@ public class CreateContestServlet extends HttpServlet {
 				.set("overunder", parseOdds(request.getParameter("overunder")))
 				.set("date", Timestamp.of(parseDate(request.getParameter("gamedate"), request.getParameter("gametime"))))
 				.set("resolved", false)
+				.set("spreadfavoritesum", 0)
+				.set("spreaddogsum", 0)
+				.set("moneylinefavoritesum", 0)
+				.set("moneylinedogsum", 0)
+				.set("oversum", 0)
+				.set("undersum", 0)
 				.build();
 		
 		datastore.put(contestEntry);

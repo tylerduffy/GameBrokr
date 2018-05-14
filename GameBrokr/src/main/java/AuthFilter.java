@@ -37,7 +37,7 @@ public class AuthFilter implements Filter {
 		HttpServletResponse resp = (HttpServletResponse) response;
 		String loginURL = userService.createLoginURL("");
 		String url = req.getRequestURL().toString();
-		String homeURL = "(http)?(s)?(://)?(www\\.)?(gamebrokr\\.appspot\\.com)(/)?(index\\.jsp)?";
+		String homeURL = "(http)?(s)?(://)?(www\\.)?(gamebrokr)(\\.appspot)?(\\.com)(/)?(index\\.jsp)?";
 		
 		// check if user is on home page || user is logged in || user is on its way to logging in
 		if (url.matches(homeURL) || userService.isUserLoggedIn() || url.equals(loginURL)) {

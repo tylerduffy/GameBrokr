@@ -90,6 +90,19 @@ public class PlaceBetServlet extends HttpServlet {
 						.build();
 				
 				datastore.put(wagerEntry);
+				
+				// update wager totals for this contest
+				Entity contest = datastore.get(getContestKey(request.getParameter("contestid")));
+				String type = request.getParameter("type");
+				String sum = request.getParameter("selection")+"sum";
+				if (!type.equals("overunder")) {
+					sum = type + sum;
+				}
+				Entity updatedContest = Entity.newBuilder(contest)
+						.set(sum, contest.getLong(sum) + amount)
+						.build();
+				datastore.update(updatedContest);
+				
 				response.sendRedirect("/profile");
 			}
 			
@@ -126,6 +139,19 @@ public class PlaceBetServlet extends HttpServlet {
 							.build();
 					
 					datastore.put(wagerEntry);
+					
+					// update wager totals for this contest
+					Entity contest = datastore.get(getContestKey(request.getParameter("contestid")));
+					String type = request.getParameter("type");
+					String sum = request.getParameter("selection")+"sum";
+					if (!type.equals("overunder")) {
+						sum = type + sum;
+					}
+					Entity updatedContest = Entity.newBuilder(contest)
+							.set(sum, contest.getLong(sum) + amount)
+							.build();
+					datastore.update(updatedContest);
+					
 					response.sendRedirect("/profile");
 				}
 				
