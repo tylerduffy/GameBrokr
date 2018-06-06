@@ -75,6 +75,7 @@ public class ViewSingleContestServlet extends HttpServlet {
 				contestBean.setMoneylinedogsum(contest.getLong("moneylinedogsum"));
 				contestBean.setUndersum(contest.getLong("oversum"));
 				contestBean.setOversum(contest.getLong("undersum"));
+				contestBean.setSport(contest.getString("sport"));
 				// end progress bar section
 				if (contestBean.isResolved()) {
 					contestBean.setFavoriteresult(String.valueOf(contest.getLong("favoriteresult")));

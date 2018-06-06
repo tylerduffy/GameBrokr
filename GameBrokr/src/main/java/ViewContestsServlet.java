@@ -15,6 +15,7 @@ import com.google.cloud.datastore.DatastoreOptions;
 import com.google.cloud.datastore.Entity;
 import com.google.cloud.datastore.Query;
 import com.google.cloud.datastore.QueryResults;
+import com.google.cloud.datastore.StructuredQuery.CompositeFilter;
 import com.google.cloud.datastore.StructuredQuery.OrderBy;
 import com.google.cloud.datastore.StructuredQuery.PropertyFilter;
 
@@ -34,60 +35,73 @@ public class ViewContestsServlet extends HttpServlet {
 	 * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse response)
 	 */
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		Query<Entity> query = Query.newEntityQueryBuilder().setKind("Contest")
-				.setFilter(PropertyFilter.eq("resolved", false))
-				.setOrderBy(OrderBy.asc("date"))
-				.build();
-		QueryResults<Entity> results = datastore.run(query);
-		
-		ArrayList<ContestBean> allContests = new ArrayList<ContestBean>();
-		
-		results.forEachRemaining((result) -> {
-			ContestBean bean = new ContestBean();
-			bean.setId("../viewcontest?contest_id=" + String.valueOf(result.getKey().getId()));
-			bean.setDate(new Date(result.getTimestamp("date").getSeconds()*1000));
-			bean.setDog(result.getString("dog"));
-			bean.setFavorite(result.getString("favorite"));
-			bean.setMoneyline(getMoneyline(result));
-			bean.setOverunder(processOdds(result.getDouble("overunder")));
-			bean.setSpread(getSpread(result.getDouble("spread")));
-			allContests.add(bean);
-		});
-		
-		request.setAttribute("isAdmin", userService.isUserAdmin());
-		request.setAttribute("allContests", allContests);
-		
-		String showHist;
-		if ((showHist = request.getParameter("showhistory")) != null) {
-			if (showHist.equals("true")) {
-				Query<Entity> queryHistory = Query.newEntityQueryBuilder().setKind("Contest")
-						.setFilter(PropertyFilter.eq("resolved", true))
-						.setOrderBy(OrderBy.desc("date"))
-						.build();
-				QueryResults<Entity> resultsHistory = datastore.run(queryHistory);
-				
-				ArrayList<ContestBean> allContestsHistory = new ArrayList<ContestBean>();
-				
-				resultsHistory.forEachRemaining((result) -> {
-					ContestBean bean = new ContestBean();
-					bean.setId("../viewcontest?contest_id=" + String.valueOf(result.getKey().getId()));
-					bean.setDate(new Date(result.getTimestamp("date").getSeconds()*1000));
-					bean.setDog(result.getString("dog"));
-					bean.setFavorite(result.getString("favorite"));
-					bean.setMoneyline(getMoneyline(result));
-					bean.setOverunder(processOdds(result.getDouble("overunder")));
-					bean.setSpread(getSpread(result.getDouble("spread")));
-					bean.setDogresult(String.valueOf(result.getLong("dogresult")));
-					bean.setFavoriteresult(String.valueOf(result.getLong("favoriteresult")));
-					allContestsHistory.add(bean);
-				});
-				
-				request.setAttribute("showHistory", true);
-				request.setAttribute("contestHistory", allContestsHistory);
+		String sport;
+		if ((sport = request.getParameter("sport")) != null) {
+			Query<Entity> query = Query.newEntityQueryBuilder().setKind("Contest")
+					.setFilter(CompositeFilter.and(
+							(PropertyFilter.eq("resolved", false)),
+							(PropertyFilter.eq("sport", sport))))
+					.setOrderBy(OrderBy.asc("date"))
+					.build();
+			QueryResults<Entity> results = datastore.run(query);
+			
+			ArrayList<ContestBean> allContests = new ArrayList<ContestBean>();
+			
+			results.forEachRemaining((result) -> {
+				ContestBean bean = new ContestBean();
+				bean.setId("../viewcontest?contest_id=" + String.valueOf(result.getKey().getId()));
+				bean.setDate(new Date(result.getTimestamp("date").getSeconds()*1000));
+				bean.setDog(result.getString("dog"));
+				bean.setFavorite(result.getString("favorite"));
+				bean.setMoneyline(getMoneyline(result));
+				bean.setOverunder(processOdds(result.getDouble("overunder")));
+				bean.setSpread(getSpread(result.getDouble("spread")));
+				allContests.add(bean);
+			});
+			
+			request.setAttribute("sport", sport);
+			request.setAttribute("properSport", sport.toUpperCase());
+			request.setAttribute("isAdmin", userService.isUserAdmin());
+			request.setAttribute("allContests", allContests);
+			
+			String showHist;
+			if ((showHist = request.getParameter("showhistory")) != null) {
+				if (showHist.equals("true")) {
+					Query<Entity> queryHistory = Query.newEntityQueryBuilder().setKind("Contest")
+							.setFilter(CompositeFilter.and(
+									(PropertyFilter.eq("resolved", true)),
+									(PropertyFilter.eq("sport", sport))))
+							.setOrderBy(OrderBy.desc("date"))
+							.build();
+					QueryResults<Entity> resultsHistory = datastore.run(queryHistory);
+					
+					ArrayList<ContestBean> allContestsHistory = new ArrayList<ContestBean>();
+					
+					resultsHistory.forEachRemaining((result) -> {
+						ContestBean bean = new ContestBean();
+						bean.setId("../viewcontest?contest_id=" + String.valueOf(result.getKey().getId()));
+						bean.setDate(new Date(result.getTimestamp("date").getSeconds()*1000));
+						bean.setDog(result.getString("dog"));
+						bean.setFavorite(result.getString("favorite"));
+						bean.setMoneyline(getMoneyline(result));
+						bean.setOverunder(processOdds(result.getDouble("overunder")));
+						bean.setSpread(getSpread(result.getDouble("spread")));
+						bean.setDogresult(String.valueOf(result.getLong("dogresult")));
+						bean.setFavoriteresult(String.valueOf(result.getLong("favoriteresult")));
+						allContestsHistory.add(bean);
+					});
+					
+					request.setAttribute("showHistory", true);
+					request.setAttribute("contestHistory", allContestsHistory);
+				}
 			}
+		    request.getRequestDispatcher("/WEB-INF/jsp/contests.jsp").forward(request, response);
+		} else {
+			request.setAttribute("errorMsg", "No Sport Specified. Try Again.");
+		    request.getRequestDispatcher("/WEB-INF/jsp/error.jsp").forward(request, response);
 		}
 		
-	    request.getRequestDispatcher("/WEB-INF/jsp/contests.jsp").forward(request, response);
+		
 	}
 
 	/**

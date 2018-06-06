@@ -26,6 +26,7 @@ public class ContestBean implements Serializable {
 	private long moneylinedogsum;
 	private long oversum;
 	private long undersum;
+	private String sport;
 	
 	/**
 	 * 
@@ -188,5 +189,13 @@ public class ContestBean implements Serializable {
 
 	public void setUndersum(long undersum) {
 		this.undersum = undersum;
+	}
+
+	public String getSport() {
+		return sport;
+	}
+
+	public void setSport(String sport) {
+		this.sport = sport;
 	}
 }

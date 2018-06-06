@@ -7,14 +7,34 @@
   </head>
 
   <body>
-  	<ul>
+  	<!-- <ul>
 	  <li><a href="/index.jsp">Home</a></li>
 	  <li><a href="/contests">Contests</a></li>
 	  <li><a href="/wagers">Wagers</a></li>
 	  <li><a href="/groups">Groups</a></li>
 	  <li><a href="/leaderboard">Leaderboard</a></li>
 	  <li style="float:right"><a href="/profile">Profile</a></li>
-	</ul>
+	</ul> -->
+	<div class="navbar">
+	  <a href="/index.jsp">Home</a>
+	  <div class="dropdown">
+	    <button class="dropbtn">Contests 
+	      <i class="fa fa-caret-down"></i>
+	    </button>
+	    <div class="dropdown-content">
+	      <a href="/contests?sport=nba">NBA</a>
+	      <a href="/contests?sport=nfl">NFL</a>
+	      <a href="/contests?sport=mlb">MLB</a>
+	      <a href="/contests?sport=nhl">NHL</a>
+	      <a href="/contests?sport=ncaab">NCAAB</a>
+	      <a href="/contests?sport=ncaaf">NCAAF</a>
+	    </div>
+	  </div>
+	  <a href="/wagers">Wagers</a>
+	  <a href="/groups">Groups</a>
+	  <a href="/leaderboard">Leaderboard</a>
+	  <a style="float:right" href="/profile">Profile</a>
+	</div>
 	
     <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c"%>
 
@@ -25,6 +45,7 @@
 			  Add a New Contest
 			</h2>
 			<form method="POST" action="/newcontest">
+			<input type="hidden" name="sport" id="sport" value="${sport}"/>
 			  <div>
 			    <label for="favorite">Favorite </label>
 			    <input type="text" name="favorite" id="favorite" class="form-control" required />
@@ -68,7 +89,7 @@
 	    </div>
 	    </c:if>
 		<div class="tables">
-			<h1>Contests</h1>
+			<h1>${properSport} Contests</h1>
 		    <table class="contest">
 			    <tr>
 					<th>Matchup</th>
@@ -114,7 +135,7 @@
 			</c:if>
 		</div>
 		<c:if test="${!showHistory}">
-			<p><a href="../contests?showhistory=true">Show Past Games</a></p>
+			<p><a href="../contests?sport=${sport}&showhistory=true">Show Past Games</a></p>
 		</c:if>
     </div>
   </body>

@@ -46,6 +46,7 @@ public class CreateContestServlet extends HttpServlet {
 	 */
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		FullEntity<IncompleteKey> contestEntry = Entity.newBuilder(keyFactory.newKey())
+				.set("sport", request.getParameter("sport"))
 				.set("favorite", request.getParameter("favorite"))
 				.set("dog", request.getParameter("dog"))
 				.set("spread", parseOdds(request.getParameter("spread")))
@@ -63,7 +64,7 @@ public class CreateContestServlet extends HttpServlet {
 				.build();
 		
 		datastore.put(contestEntry);
-		response.sendRedirect("/contests");
+		response.sendRedirect("/contests?sport=" + request.getParameter("sport"));
 	}
 
 	@Override

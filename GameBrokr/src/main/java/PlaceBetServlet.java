@@ -87,6 +87,7 @@ public class PlaceBetServlet extends HttpServlet {
 						.set("resolved", false)
 						.set("selection", request.getParameter("selection"))
 						.set("type", request.getParameter("type"))
+						.set("sport", request.getParameter("sport"))
 						.build();
 				
 				datastore.put(wagerEntry);
@@ -136,6 +137,7 @@ public class PlaceBetServlet extends HttpServlet {
 							.set("resolved", false)
 							.set("selection", request.getParameter("selection"))
 							.set("type", request.getParameter("type"))
+							.set("sport", request.getParameter("sport"))
 							.build();
 					
 					datastore.put(wagerEntry);
