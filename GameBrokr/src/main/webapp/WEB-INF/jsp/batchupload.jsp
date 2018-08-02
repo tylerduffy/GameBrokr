@@ -35,15 +35,14 @@
 	    <div hidden="true">
 	    	<fieldset id="template">
 	    		<input name="favorite">
-	    		<input name="dog[]">
-	 			<input size="8" name="spread[]">
-	 			<input size="10" name="favoriteline[]">
-	 			<input size="10" name="dogline[]">
-	 			<input size="10" name="overunder[]">
-	 			<input type="date" name="date[]">
-	 			<input type="time" name="time[]">
-	 			<input name="sport[]">
-	 			<select>
+	    		<input name="dog">
+	 			<input size="8" name="spread">
+	 			<input size="10" name="favoriteline">
+	 			<input size="10" name="dogline">
+	 			<input size="10" name="overunder">
+	 			<input type="date" name="date">
+	 			<input type="time" name="time">
+	 			<select name="sport">
 	 			  <option disabled hidden selected value=""></option>
 				  <option value="nba">NBA</option>
 				  <option value="nfl">NFL</option>
@@ -62,32 +61,29 @@
 	    		<label style="display: block">Favorite</label><input name="favorite">
 	    		</div>
 	    		<div style="display:inline-block;">
-	  			<label style="display: block;">Dog</label><input name="dog[]">
+	  			<label style="display: block;">Dog</label><input name="dog">
 	 			</div>
 	 			<div style="display:inline-block;">
-	 			<label style="display: block">Spread</label><input size="8" name="spread[]">
+	 			<label style="display: block">Spread</label><input size="8" name="spread">
 	 			</div>
 	 			<div style="display:inline-block;">
-	 			<label style="display: block">Line (-)</label><input size="10" name="favoriteline[]">
+	 			<label style="display: block">Line (-)</label><input size="10" name="favoriteline">
 	 			</div>
 	 			<div style="display:inline-block;">
-	 			<label style="display: block">Line (+)</label><input size="10" name="dogline[]">
+	 			<label style="display: block">Line (+)</label><input size="10" name="dogline">
 	 			</div>
 	 			<div style="display:inline-block;">
-	 			<label style="display: block">Over/Under</label><input size="10" name="overunder[]">
+	 			<label style="display: block">Over/Under</label><input size="10" name="overunder">
 	 			</div>
 	 			<div style="display:inline-block;">
-	 			<label style="display: block">Date</label><input type="date" name="date[]">
+	 			<label style="display: block">Date</label><input type="date" name="date">
 	 			</div>
 	 			<div style="display:inline-block;">
-	 			<label style="display: block">Time</label><input type="time" name="time[]">
-	 			</div>
-	 			<div style="display:inline-block;">
-	 			<label style="display: block">Sport</label><input name="sport[]">
+	 			<label style="display: block">Time</label><input type="time" name="time">
 	 			</div>
 	 			<div style="display:inline-block;">
 	 			<label style="display: block">Sport</label>
-	 			<select>
+	 			<select name="sport">
 	 			  <option disabled hidden selected value=""></option>
 				  <option value="nba">NBA</option>
 				  <option value="nfl">NFL</option>
