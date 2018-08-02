@@ -7,15 +7,6 @@
   </head>
 
   <body>
-  	<!-- <ul>
-	  <li><a href="/index.jsp">Home</a></li>
-	  <li><a href="/contests">Contests</a></li>
-	  <li><a href="/wagers">Wagers</a></li>
-	  <li><a href="/groups">Groups</a></li>
-	  <li><a href="/leaderboard">Leaderboard</a></li>
-	  <li style="float:right"><a href="/profile">Profile</a></li>
-	</ul> -->
-	
 	<div class="navbar">
 	  <a href="/index.jsp">Home</a>
 	  <div class="dropdown">

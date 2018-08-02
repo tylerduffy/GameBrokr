@@ -35,16 +35,24 @@ public class AuthFilter implements Filter {
 	public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
 		HttpServletRequest req = (HttpServletRequest) request;
 		HttpServletResponse resp = (HttpServletResponse) response;
-		String loginURL = userService.createLoginURL("");
+		
 		String url = req.getRequestURL().toString();
 		String homeURL = "(http)?(s)?(://)?(www\\.)?(gamebrokr)(\\.appspot)?(\\.com)(/)?(index\\.jsp)?";
 		
+		StringBuffer requestURL = req.getRequestURL();
+		if (req.getQueryString() != null) {
+		    requestURL.append("?").append(req.getQueryString());
+		}
+		String completeURL = requestURL.toString();
+		
+		String trueLoginURL = userService.createLoginURL(completeURL);
+		
 		// check if user is on home page || user is logged in || user is on its way to logging in
-		if (url.matches(homeURL) || userService.isUserLoggedIn() || url.equals(loginURL)) {
+		if (url.matches(homeURL) || userService.isUserLoggedIn() || url.equals(trueLoginURL)) {
 			// pass the request along the filter chain
 			chain.doFilter(request, response);
 		} else {
-			resp.sendRedirect(loginURL);
+			resp.sendRedirect(trueLoginURL);
 		}
 	}
 
