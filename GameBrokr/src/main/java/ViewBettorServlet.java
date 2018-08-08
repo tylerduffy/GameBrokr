@@ -129,6 +129,7 @@ public class ViewBettorServlet extends HttpServlet {
 				}
 				
 				request.setAttribute("bettor", user);
+				request.setAttribute("me", false);
 				request.setAttribute("openWagers", openWagers);
 				request.setAttribute("closedWagers", closedWagers);
 				request.setAttribute("groups", groups);

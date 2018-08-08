@@ -61,7 +61,15 @@
 			</tr>
 		    <c:forEach items="${openWagers}" var="wager">
 		    	<tr>
-		    		<td><a href="${wager.matchupLink}">${wager.matchup}</a></td>
+		    		<td>
+		    			<c:if test = "${me}">
+			    			<form method="POST" action="/deletewager">
+		    					<input type="hidden" name="wager_id" id="wager_id" value="${wager.id}"/>
+		    					<button class="delete-btn" onclick="return confirm('Delete this wager?')" type="submit">X</button>
+		    				</form>
+	    				</c:if>
+	    				<a href="${wager.matchupLink}">${wager.matchup}</a>
+	    			</td>
 		    		<td>${wager.type}</td>
 		    		<td>${wager.selection}</td>
 		    		<td>${wager.amount}</td>
@@ -103,7 +111,15 @@
 	    			</tr>
 	    			<c:forEach items="${group.openwagers}" var="wager">
 				    	<tr>
-				    		<td><a href="${wager.matchupLink}">${wager.matchup}</a></td>
+				    		<td>
+				    			<c:if test = "${me}">
+					    			<form method="POST" action="/deletewager">
+				    					<input type="hidden" name="wager_id" id="wager_id" value="${wager.id}"/>
+				    					<button class="delete-btn" onclick="return confirm('Delete this wager?')" type="submit">X</button>
+				    				</form>
+			    				</c:if>
+				    			<a href="${wager.matchupLink}">${wager.matchup}</a>
+				    		</td>
 				    		<td>${wager.type}</td>
 				    		<td>${wager.selection}</td>
 				    		<td>${wager.amount}</td>

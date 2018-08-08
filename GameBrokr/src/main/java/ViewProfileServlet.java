@@ -75,6 +75,7 @@ public class ViewProfileServlet extends HttpServlet {
 			results.forEachRemaining((result) -> {
 				WagerBean bean = new WagerBean();
 				bean.setMatchup(getMatchupString(result));
+				bean.setId(String.valueOf(result.getKey().getId()));
 				bean.setMatchupLink(getMatchupLink(result));
 				bean.setSelection(getPick(result));
 				bean.setType(typeMap.get(result.getString("type")));
@@ -129,6 +130,7 @@ public class ViewProfileServlet extends HttpServlet {
 		}
 		
 		request.setAttribute("bettor", user);
+		request.setAttribute("me", true);
 		request.setAttribute("openWagers", openWagers);
 		request.setAttribute("closedWagers", closedWagers);
 		request.setAttribute("groups", groups);
