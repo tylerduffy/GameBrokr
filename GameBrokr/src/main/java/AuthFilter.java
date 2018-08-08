@@ -50,6 +50,7 @@ public class AuthFilter implements Filter {
 		// check if user is on home page || user is logged in || user is on its way to logging in
 		if (url.matches(homeURL) || userService.isUserLoggedIn() || url.equals(trueLoginURL)) {
 			// pass the request along the filter chain
+			request.setAttribute("userLoggedIn", userService.isUserLoggedIn());
 			chain.doFilter(request, response);
 		} else {
 			resp.sendRedirect(trueLoginURL);

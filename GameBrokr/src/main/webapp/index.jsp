@@ -6,6 +6,8 @@
     <link rel="stylesheet" type="text/css" href="/stylesheets/style.css">
   </head>
 
+  <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c"%>
+
   <body>
 	<div class="navbar">
 	  <a href="/index.jsp">Home</a>
@@ -25,7 +27,12 @@
 	  <a href="/wagers">Wagers</a>
 	  <a href="/groups">Groups</a>
 	  <a href="/leaderboard">Leaderboard</a>
-	  <a style="float:right" href="/profile">Profile</a>
+	  <c:if test = "${userLoggedIn}">
+	  	<a style="float:right" href="/profile">Profile</a>
+	  </c:if>
+	  <c:if test = "${!userLoggedIn}">
+	  	<a style="float:right" href="/register">Login / Register</a>
+	  </c:if>
 	</div>
 	
 	<div class="pad">
