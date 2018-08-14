@@ -62,7 +62,7 @@
 		    <c:forEach items="${openWagers}" var="wager">
 		    	<tr>
 		    		<td>
-		    			<c:if test = "${me}">
+		    			<c:if test = "${me && wager.future}">
 			    			<form method="POST" action="/deletewager">
 		    					<input type="hidden" name="wager_id" id="wager_id" value="${wager.id}"/>
 		    					<button class="delete-btn" onclick="return confirm('Delete this wager?')" type="submit">X</button>
@@ -112,7 +112,7 @@
 	    			<c:forEach items="${group.openwagers}" var="wager">
 				    	<tr>
 				    		<td>
-				    			<c:if test = "${me}">
+				    			<c:if test = "${me && wager.future}">
 					    			<form method="POST" action="/deletewager">
 				    					<input type="hidden" name="wager_id" id="wager_id" value="${wager.id}"/>
 				    					<button class="delete-btn" onclick="return confirm('Delete this wager?')" type="submit">X</button>

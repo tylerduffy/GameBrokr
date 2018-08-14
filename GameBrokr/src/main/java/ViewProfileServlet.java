@@ -2,6 +2,7 @@
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -101,6 +102,8 @@ public class ViewProfileServlet extends HttpServlet {
 				} else {
 					// open wager
 					bean.setAmount(getWager(result));
+					// set date
+					bean.setDate(getDate(result));
 					if (isDefaultGroup(group.getKey().getId())) {
 						// proprietary wager
 						openWagers.add(bean);
@@ -212,6 +215,11 @@ public class ViewProfileServlet extends HttpServlet {
 	
 	private String getWager(Entity entity) {
 		return "$" + String.valueOf(entity.getValue("amount").get());
+	}
+	
+	private Date getDate(Entity entity) {
+		Entity contest = datastore.get(entity.getKey("contest"));
+		return new Date(contest.getTimestamp("date").getSeconds()*1000);
 	}
 	
 	private boolean isDefaultGroup(long groupId) {

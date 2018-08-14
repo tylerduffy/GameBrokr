@@ -9,6 +9,7 @@ public class WagerBean implements Serializable {
 	private String amount;
 	private String bettor;
 	private String bettorName;
+	private boolean future;
 	private String matchup;
 	private String matchupLink;
 	private Date date;
@@ -117,5 +118,9 @@ public class WagerBean implements Serializable {
 
 	public void setWinloss(String winloss) {
 		this.winloss = winloss;
+	}
+
+	public boolean isFuture() {
+		return getDate().after(new Date());
 	}
 }
