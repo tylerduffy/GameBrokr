@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -41,6 +43,8 @@ public class ViewSingleGroupServlet extends HttpServlet {
 	Key groupKey;
 	UserService userService;
 	boolean isMember;
+	Map<Key, Entity> contestCache;
+	Map<Key, Entity> bettorCache;
 	
 	/**
 	 * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse response)
@@ -90,6 +94,33 @@ public class ViewSingleGroupServlet extends HttpServlet {
 				request.setAttribute("group", groupBean);
 				request.setAttribute("isMember", isMember);
 				request.setAttribute("memberships", membershipList);
+				/*
+				
+				Query<Entity> openQuery = Query.newEntityQueryBuilder().setKind("Wager")
+				.setFilter(CompositeFilter.and(
+						(PropertyFilter.eq("group", groupKey)),
+						(PropertyFilter.eq("resolved", false))))
+				.setOrderBy(OrderBy.desc("date"))
+				.build();
+				
+				QueryResults<Entity> openResults = datastore.run(openQuery);
+				
+				Query<Entity> closedQuery = Query.newEntityQueryBuilder().setKind("Wager")
+				.setFilter(CompositeFilter.and(
+						(PropertyFilter.eq("group", groupKey)),
+						(PropertyFilter.eq("resolved", true))))
+				.setOrderBy(OrderBy.desc("date"))
+				.build();
+				
+				QueryResults<Entity> closedResults = datastore.run(closedQuery);
+				
+				request.setAttribute("openSpreadWagers", fillBeansFromResults(openResults, true, "spread"));
+				request.setAttribute("openMoneylineWagers", fillBeansFromResults(openResults, true, "moneyline"));
+				request.setAttribute("openOverunderWagers", fillBeansFromResults(openResults, true, "overunder"));
+				request.setAttribute("closedSpreadWagers", fillBeansFromResults(closedResults, false, "spread"));
+				request.setAttribute("closedMoneylineWagers", fillBeansFromResults(closedResults, false, "moneyline"));
+				request.setAttribute("closedOverunderWagers", fillBeansFromResults(closedResults, false, "overunder"));
+				 */
 				request.setAttribute("openSpreadWagers", fillBeans(true, "spread"));
 				request.setAttribute("openMoneylineWagers", fillBeans(true, "moneyline"));
 				request.setAttribute("openOverunderWagers", fillBeans(true, "overunder"));
@@ -123,6 +154,8 @@ public class ViewSingleGroupServlet extends HttpServlet {
 		bettorKeyFactory = datastore.newKeyFactory().setKind("Bettor");
 		groupKeyFactory = datastore.newKeyFactory().setKind("Group");
 		userService = UserServiceFactory.getUserService();
+		contestCache = new HashMap<Key, Entity>();
+		bettorCache = new HashMap<Key, Entity>();
 	}
 	
 	private ArrayList<WagerBean> fillBeans(boolean open, String type) {
@@ -158,9 +191,42 @@ public class ViewSingleGroupServlet extends HttpServlet {
 		return list;
 	}
 	
+	private ArrayList<WagerBean> fillBeansFromResults(QueryResults<Entity> results, boolean open, String type) {
+		ArrayList<WagerBean> list = new ArrayList<WagerBean>();
+		if (results.hasNext()) {
+			results.forEachRemaining((result) -> {
+				if (result.getString("type").equals(type) && !result.getBoolean("resolved") == open) {
+					WagerBean bean = createWagerBean(result);
+					bean.setMatchup(getMatchupString(result));
+					bean.setMatchupLink(getMatchupLink(result));
+					bean.setSelection(getPick(result));
+					
+					if (!open) {
+						bean.setResult(result.getString("result"));
+						if (bean.getResult().contains("W")) {
+							bean.setWinloss("win");
+						} else {
+							bean.setWinloss("loss");
+						}
+					} else {
+						bean.setAmount(getWager(result));
+					}
+					list.add(bean);
+				}
+			});
+		}
+		return list;
+	}
+	
 	private WagerBean createWagerBean(Entity wager) {
 		WagerBean bean = new WagerBean();
-		Entity bettor = datastore.get(wager.getKey("bettor"));
+		Key bettorKey = wager.getKey("bettor");
+		Entity bettor = bettorCache.get(bettorKey);
+		if (bettor == null) {
+			bettor = datastore.get(bettorKey);
+			bettorCache.put(bettorKey, bettor);
+		}
+//		Entity bettor = datastore.get(wager.getKey("bettor"));
 		if (bettor != null) {
 			bean.setBettor("../viewbettor?bettor_id=" + String.valueOf(bettor.getKey().getNameOrId()));
 			bean.setBettorName(bettor.getString("username"));
@@ -174,7 +240,12 @@ public class ViewSingleGroupServlet extends HttpServlet {
 	private String getPick(Entity entity) {
 		String pick = entity.getString("selection");
 		if (pick != null) {
-			Entity contest = datastore.get(entity.getKey("contest"));
+			Key contestKey = entity.getKey("contest");
+			Entity contest = contestCache.get(contestKey);
+			if (contest == null) {
+				contest = datastore.get(contestKey);
+				contestCache.put(contestKey, contest);
+			}
 			if (contest != null) {
 				if (entity.getString("type").equals("spread")) {
 					if (pick.equals("favorite")) {
@@ -219,7 +290,11 @@ public class ViewSingleGroupServlet extends HttpServlet {
 	
 	private String getUsername(Entity membership) {
 		Key bettorKey = membership.getKey("user");
-		Entity bettor = datastore.get(bettorKey);
+		Entity bettor = bettorCache.get(bettorKey);
+		if (bettor == null) {
+			bettor = datastore.get(bettorKey);
+			bettorCache.put(bettorKey, bettor);
+		}
 		if (bettor != null) {
 			return bettor.getString("username");
 		}
@@ -227,7 +302,12 @@ public class ViewSingleGroupServlet extends HttpServlet {
 	}
 	
 	private String getMatchupLink(Entity entity) {
-		Entity contest = datastore.get(entity.getKey("contest"));
+		Key contestKey = entity.getKey("contest");
+		Entity contest = contestCache.get(contestKey);
+		if (contest == null) {
+			contest = datastore.get(contestKey);
+			contestCache.put(contestKey, contest);
+		}
 		if (contest != null) {
 			return "../viewcontest?contest_id=" + String.valueOf(contest.getKey().getId());
 		} else {
@@ -236,7 +316,12 @@ public class ViewSingleGroupServlet extends HttpServlet {
 	}
 	
 	private String getMatchupString(Entity entity) {
-		Entity contest = datastore.get(entity.getKey("contest"));
+		Key contestKey = entity.getKey("contest");
+		Entity contest = contestCache.get(contestKey);
+		if (contest == null) {
+			contest = datastore.get(contestKey);
+			contestCache.put(contestKey, contest);
+		}
 		if (contest != null) {
 			return contest.getString("favorite") + " v. " + contest.getString("dog");
 		}
