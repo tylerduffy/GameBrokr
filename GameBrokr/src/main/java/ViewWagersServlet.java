@@ -2,6 +2,8 @@
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -12,6 +14,7 @@ import javax.servlet.http.HttpServletResponse;
 import com.google.cloud.datastore.Datastore;
 import com.google.cloud.datastore.DatastoreOptions;
 import com.google.cloud.datastore.Entity;
+import com.google.cloud.datastore.Key;
 import com.google.cloud.datastore.KeyFactory;
 import com.google.cloud.datastore.Query;
 import com.google.cloud.datastore.QueryResults;
@@ -29,7 +32,8 @@ import javabeans.WagerBean;
 public class ViewWagersServlet extends HttpServlet {
 	
 	Datastore datastore;
-	KeyFactory keyFactory;
+	Map<Key, Entity> contestCache;
+	Map<Key, Entity> bettorCache;
 
 	/**
 	 * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse response)
@@ -52,11 +56,17 @@ public class ViewWagersServlet extends HttpServlet {
 	public void init() throws ServletException {
 		// setup datastore service
 		datastore = DatastoreOptions.getDefaultInstance().getService();
-		keyFactory = datastore.newKeyFactory().setKind("Contest");
+		contestCache = new HashMap<Key, Entity>();
+		bettorCache = new HashMap<Key, Entity>();
 	}
 	
 	private String getMatchupLink(Entity entity) {
-		Entity contest = datastore.get(entity.getKey("contest"));
+		Key contestKey = entity.getKey("contest");
+		Entity contest = contestCache.get(contestKey);
+		if (contest == null) {
+			contest = datastore.get(contestKey);
+			contestCache.put(contestKey, contest);
+		}
 		if (contest != null) {
 			return "../viewcontest?contest_id=" + String.valueOf(contest.getKey().getId());
 		} else {
@@ -65,7 +75,12 @@ public class ViewWagersServlet extends HttpServlet {
 	}
 	
 	private String getMatchupString(Entity entity) {
-		Entity contest = datastore.get(entity.getKey("contest"));
+		Key contestKey = entity.getKey("contest");
+		Entity contest = contestCache.get(contestKey);
+		if (contest == null) {
+			contest = datastore.get(contestKey);
+			contestCache.put(contestKey, contest);
+		}
 		if (contest != null) {
 			return contest.getString("favorite") + " v. " + contest.getString("dog");
 		}
@@ -73,7 +88,12 @@ public class ViewWagersServlet extends HttpServlet {
 	}
 	
 	private String getBettor(Entity entity) {
-		Entity bettor = datastore.get(entity.getKey("bettor"));
+		Key bettorKey = entity.getKey("bettor");
+		Entity bettor = bettorCache.get(bettorKey);
+		if (bettor == null) {
+			bettor = datastore.get(bettorKey);
+			bettorCache.put(bettorKey, bettor);
+		}
 		if (bettor != null) {
 			return "../viewbettor?bettor_id=" + String.valueOf(bettor.getKey().getNameOrId());
 		} else {
@@ -82,7 +102,12 @@ public class ViewWagersServlet extends HttpServlet {
 	}
 	
 	private String getBettorName(Entity entity) {
-		Entity bettor = datastore.get(entity.getKey("bettor"));
+		Key bettorKey = entity.getKey("bettor");
+		Entity bettor = bettorCache.get(bettorKey);
+		if (bettor == null) {
+			bettor = datastore.get(bettorKey);
+			bettorCache.put(bettorKey, bettor);
+		}
 		if (bettor != null) {
 			return bettor.getString("username");
 		}
@@ -92,7 +117,12 @@ public class ViewWagersServlet extends HttpServlet {
 	private String getPick(Entity entity) {
 		String pick = entity.getString("selection");
 		if (pick != null) {
-			Entity contest = datastore.get(entity.getKey("contest"));
+			Key contestKey = entity.getKey("contest");
+			Entity contest = contestCache.get(contestKey);
+			if (contest == null) {
+				contest = datastore.get(contestKey);
+				contestCache.put(contestKey, contest);
+			}
 			if (contest != null) {
 				if (entity.getString("type").equals("spread")) {
 					if (pick.equals("favorite")) {
