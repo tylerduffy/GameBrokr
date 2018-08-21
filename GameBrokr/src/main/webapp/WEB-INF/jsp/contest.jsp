@@ -78,7 +78,7 @@
 						<input type="number" name="wageramount" id="wageramount" class="form-control"/>
 						<br>
 						<label for="group">Group </label>
-						<select name="group" id="group" class="form-control">
+						<select name="group" id="group" multiple class="form-control">
 							<option value="0">Open (Default)</option>
 							<c:forEach items="${groups}" var="group">
 							<option value="${group.id}">${group.name}</option>
@@ -108,7 +108,7 @@
 						<input type="number" name="wageramount" id="wageramount" class="form-control"/>
 						<br>
 						<label for="group">Group </label>
-						<select name="group" id="group" class="form-control">
+						<select name="group" id="group" multiple class="form-control">
 							<option value="0">Open (Default)</option>
 							<c:forEach items="${groups}" var="group">
 							<option value="${group.id}">${group.name}</option>
@@ -138,7 +138,7 @@
 						<input type="number" name="wageramount" id="wageramount" class="form-control"/>
 						<br>
 						<label for="group">Group </label>
-						<select name="group" id="group" class="form-control">
+						<select name="group" id="group" multiple class="form-control">
 							<option value="0">Open (Default)</option>
 							<c:forEach items="${groups}" var="group">
 							<option value="${group.id}">${group.name}</option>

@@ -7,7 +7,7 @@ import javax.servlet.http.HttpServletResponse;
 
 
 @WebServlet(name = "SampleServlet",
-		urlPatterns = "/SampleServlet")
+		urlPatterns = "/sampleservlet")
 public class SampleServlet extends HttpServlet {
 
 	/**
@@ -19,7 +19,15 @@ public class SampleServlet extends HttpServlet {
 //    	response.setCharacterEncoding("UTF-8");
     	
     	//response.getWriter().append("Served at: ").append(request.getContextPath());
-    	response.getWriter().append("Visiting from: ").append(request.getRemoteAddr());
+//    	response.getWriter().append("Visiting from: ").append(request.getRemoteAddr());
+    	String[] groups = request.getParameterValues("group");
+    	String groupStr = "";
+    	for (String s : groups) {
+    		groupStr += s;
+    		groupStr += "...";
+    	}
+    	request.setAttribute("errorMsg", "Groups: " + groupStr);
+	    request.getRequestDispatcher("/WEB-INF/jsp/error.jsp").forward(request, response);
 	}
 
 	/**

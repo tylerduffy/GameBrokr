@@ -69,70 +69,23 @@ public class PlaceBetServlet extends HttpServlet {
 			response.sendRedirect("/register");
 		}
 		
-		if (request.getParameter("group").equals("0")) {
-			// proprietary wager, continue under default workflow
-			long bank = (long) bettor.getValue("bank").get();
-			
-			if (bank > amount) {
-				
-				Entity updatedBettor = Entity.newBuilder(bettor).set("bank", bank-amount).build();
-				datastore.update(updatedBettor);
-				
-				FullEntity<IncompleteKey> wagerEntry = Entity.newBuilder(wagerKeyFactory.newKey())
-						.set("amount", amount)
-						.set("bettor", bettorKey)
-						.set("contest", getContestKey(request.getParameter("contestid")))
-						.set("group", getGroupKey(request.getParameter("group")))
-						.set("date", Timestamp.now())
-						.set("resolved", false)
-						.set("selection", request.getParameter("selection"))
-						.set("type", request.getParameter("type"))
-						.set("sport", request.getParameter("sport"))
-						.build();
-				
-				datastore.put(wagerEntry);
-				
-				// update wager totals for this contest
-				Entity contest = datastore.get(getContestKey(request.getParameter("contestid")));
-				String type = request.getParameter("type");
-				String sum = request.getParameter("selection")+"sum";
-				if (!type.equals("overunder")) {
-					sum = type + sum;
-				}
-				Entity updatedContest = Entity.newBuilder(contest)
-						.set(sum, contest.getLong(sum) + amount)
-						.build();
-				datastore.update(updatedContest);
-				
-				response.sendRedirect("/profile");
-			}
-			
-			request.setAttribute("err", "funds");
-			doGet(request, response);
-			
-		} else {
-			// group wager, continue under group workflow
-			Query<Entity> membershipQuery = Query.newEntityQueryBuilder().setKind("Membership")
-					.setFilter(CompositeFilter.and(
-							PropertyFilter.eq("user", bettorKey),
-							PropertyFilter.eq("group", getGroupKey(request.getParameter("group")))))
-					.build();
-			
-			QueryResults<Entity> membershipResults = datastore.run(membershipQuery);
-			
-			if (membershipResults.hasNext()) {
-				Entity membership = membershipResults.next();
-				long bank = (long) membership.getValue("bank").get();
+		String[] groups = request.getParameterValues("group");
+		
+		for (String group : groups) {
+			if (group.equals("0")) {
+				// proprietary wager, continue under default workflow
+				long bank = (long) bettor.getValue("bank").get();
 				
 				if (bank > amount) {
-					Entity updatedMembership = Entity.newBuilder(membership).set("bank", bank-amount).build();
-					datastore.update(updatedMembership);
+					
+					Entity updatedBettor = Entity.newBuilder(bettor).set("bank", bank-amount).build();
+					datastore.update(updatedBettor);
 					
 					FullEntity<IncompleteKey> wagerEntry = Entity.newBuilder(wagerKeyFactory.newKey())
 							.set("amount", amount)
 							.set("bettor", bettorKey)
 							.set("contest", getContestKey(request.getParameter("contestid")))
-							.set("group", getGroupKey(request.getParameter("group")))
+							.set("group", getGroupKey(group))
 							.set("date", Timestamp.now())
 							.set("resolved", false)
 							.set("selection", request.getParameter("selection"))
@@ -153,14 +106,65 @@ public class PlaceBetServlet extends HttpServlet {
 							.set(sum, contest.getLong(sum) + amount)
 							.build();
 					datastore.update(updatedContest);
-					
-					response.sendRedirect("/profile");
+				} else {
+					// insufficient funds
+					request.setAttribute("err", "funds");
+					doGet(request, response);
 				}
 				
-				request.setAttribute("err", "funds");
-				doGet(request, response);
+			} else {
+				// group wager, continue under group workflow
+				Query<Entity> membershipQuery = Query.newEntityQueryBuilder().setKind("Membership")
+						.setFilter(CompositeFilter.and(
+								PropertyFilter.eq("user", bettorKey),
+								PropertyFilter.eq("group", getGroupKey(group))))
+						.build();
+				
+				QueryResults<Entity> membershipResults = datastore.run(membershipQuery);
+				
+				if (membershipResults.hasNext()) {
+					Entity membership = membershipResults.next();
+					long bank = (long) membership.getValue("bank").get();
+					
+					if (bank > amount) {
+						Entity updatedMembership = Entity.newBuilder(membership).set("bank", bank-amount).build();
+						datastore.update(updatedMembership);
+						
+						FullEntity<IncompleteKey> wagerEntry = Entity.newBuilder(wagerKeyFactory.newKey())
+								.set("amount", amount)
+								.set("bettor", bettorKey)
+								.set("contest", getContestKey(request.getParameter("contestid")))
+								.set("group", getGroupKey(group))
+								.set("date", Timestamp.now())
+								.set("resolved", false)
+								.set("selection", request.getParameter("selection"))
+								.set("type", request.getParameter("type"))
+								.set("sport", request.getParameter("sport"))
+								.build();
+						
+						datastore.put(wagerEntry);
+						
+						// update wager totals for this contest
+						Entity contest = datastore.get(getContestKey(request.getParameter("contestid")));
+						String type = request.getParameter("type");
+						String sum = request.getParameter("selection")+"sum";
+						if (!type.equals("overunder")) {
+							sum = type + sum;
+						}
+						Entity updatedContest = Entity.newBuilder(contest)
+								.set(sum, contest.getLong(sum) + amount)
+								.build();
+						datastore.update(updatedContest);
+					} else {
+						// insufficient funds
+						request.setAttribute("err", "funds");
+						doGet(request, response);
+					}
+				}
 			}
 		}
+		// all bets have been properly placed... return home
+		response.sendRedirect("/profile");
 	}
 	
 	@Override
