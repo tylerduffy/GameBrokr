@@ -1,7 +1,12 @@
 
 
+import java.util.List;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -12,6 +17,7 @@ import javax.servlet.http.HttpServletResponse;
 import com.google.cloud.datastore.Datastore;
 import com.google.cloud.datastore.DatastoreOptions;
 import com.google.cloud.datastore.Entity;
+import com.google.cloud.datastore.FullEntity;
 import com.google.cloud.datastore.Key;
 import com.google.cloud.datastore.KeyFactory;
 import com.google.cloud.datastore.Query;
@@ -29,6 +35,10 @@ public class ResolveContestServlet extends HttpServlet {
 	Datastore datastore;
 	KeyFactory contestKeyFactory;
 	Key contestKey;
+	Map<Key, String> keyMap;
+	Map<String, Long> winMap;
+	Map<String, Long> loseMap;
+	Map<String, Long> payoutMap;
 
 	/**
 	 * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse response)
@@ -238,6 +248,16 @@ public class ResolveContestServlet extends HttpServlet {
 				.build();
 		datastore.update(updatedContest);
 		
+		/**/
+		for (Key key : keyMap.keySet()) {
+			Entity updatedEntity = Entity.newBuilder(datastore.get(key))
+			.set("bank", payoutMap.get(keyMap.get(key)))
+			.set("win", winMap.get(keyMap.get(key)))
+			.set("loss", loseMap.get(keyMap.get(key)))
+			.build();
+			datastore.update(updatedEntity);
+		}
+		
 		response.sendRedirect("/contests");
 	}
 	
@@ -246,19 +266,38 @@ public class ResolveContestServlet extends HttpServlet {
 		// setup datastore service
 		datastore = DatastoreOptions.getDefaultInstance().getService();
 		contestKeyFactory = datastore.newKeyFactory().setKind("Contest");
+		keyMap = new HashMap<Key, String>();
+		winMap = new HashMap<String, Long>();
+		loseMap = new HashMap<String, Long>();
+		payoutMap = new HashMap<String, Long>();
 	}
 	
 	private void bettorWin(Entity bettor, Entity wager, long payout) {
 		if (isDefaultGroup(wager.getKey("group").getId())) {
 			// proprietary wager, continue with default workflow
-			long bank = (long) bettor.getValue("bank").get();
-			long wins = (long) bettor.getValue("win").get();
+//			long bank = (long) bettor.getValue("bank").get();
+//			long wins = (long) bettor.getValue("win").get();
 			
-			Entity updatedBettor = Entity.newBuilder(bettor)
+			Key bettorKey = bettor.getKey();
+			String keyStr = String.valueOf(bettorKey.getNameOrId());
+			if (!winMap.containsKey(keyStr)) {
+				keyMap.put(bettorKey, keyStr);
+				winMap.put(keyStr, (long) bettor.getValue("win").get());
+				loseMap.put(keyStr, (long) bettor.getValue("loss").get());
+				payoutMap.put(keyStr, (long) bettor.getValue("bank").get());
+			}
+			
+			long newWins = winMap.get(keyStr) + 1;
+			long newBank = payoutMap.get(keyStr) + payout;
+			winMap.put(keyStr, newWins);
+			payoutMap.put(keyStr, newBank);
+						
+			/* Entity updatedBettor = Entity.newBuilder(bettor)
 					.set("bank", bank + payout)
 					.set("win", wins + 1)
 					.build();
 			datastore.update(updatedBettor);
+			*/
 		} else {
 			// group wager, continue with group workflow
 			Query<Entity> membershipQuery = Query.newEntityQueryBuilder().setKind("Membership")
@@ -270,14 +309,30 @@ public class ResolveContestServlet extends HttpServlet {
 			QueryResults<Entity> membershipResults = datastore.run(membershipQuery);
 			if (membershipResults.hasNext()) {
 				Entity membership = membershipResults.next();
-				long bank = (long) membership.getValue("bank").get();
-				long wins = (long) membership.getValue("win").get();
+//				long bank = (long) membership.getValue("bank").get();
+//				long wins = (long) membership.getValue("win").get();
 				
+				Key memKey = membership.getKey();
+				String keyStr = String.valueOf(memKey.getNameOrId());
+				if (!winMap.containsKey(keyStr)) {
+					keyMap.put(memKey, keyStr);
+					winMap.put(keyStr, (long) membership.getValue("win").get());
+					loseMap.put(keyStr, (long) membership.getValue("loss").get());
+					payoutMap.put(keyStr, (long) membership.getValue("bank").get());
+				}
+				
+				long newWins = winMap.get(keyStr) + 1;
+				long newBank = payoutMap.get(keyStr) + payout;
+				winMap.put(keyStr, newWins);
+				payoutMap.put(keyStr, newBank);
+				
+				/*
 				Entity updatedMembership = Entity.newBuilder(membership)
 						.set("bank", bank + payout)
 						.set("win", wins + 1)
 						.build();
 				datastore.update(updatedMembership);
+				*/
 			}
 			// TODO: some form of error handling in case group/user pair cannot be found
 		}
@@ -288,9 +343,24 @@ public class ResolveContestServlet extends HttpServlet {
 	private void bettorLose(Entity bettor, Entity wager) {
 		if (isDefaultGroup(wager.getKey("group").getId())) {
 			// proprietary wager, continue with default workflow
-			long losses = (long) bettor.getValue("loss").get();
+//			long losses = (long) bettor.getValue("loss").get();
+			
+			Key bettorKey = bettor.getKey();
+			String keyStr = String.valueOf(bettorKey.getNameOrId());
+			if (!loseMap.containsKey(keyStr)) {
+				keyMap.put(bettorKey, keyStr);
+				winMap.put(keyStr, (long) bettor.getValue("win").get());
+				loseMap.put(keyStr, (long) bettor.getValue("loss").get());
+				payoutMap.put(keyStr, (long) bettor.getValue("bank").get());
+			}
+			
+			long newLosses = loseMap.get(keyStr) + 1;
+			loseMap.put(keyStr, newLosses);
+			
+			/*
 			Entity updatedBettor = Entity.newBuilder(bettor).set("loss", losses + 1).build();
 			datastore.update(updatedBettor);
+			*/
 		} else {
 			// group wager, continue with group workflow
 			Query<Entity> membershipQuery = Query.newEntityQueryBuilder().setKind("Membership")
@@ -302,10 +372,24 @@ public class ResolveContestServlet extends HttpServlet {
 			QueryResults<Entity> membershipResults = datastore.run(membershipQuery);
 			if (membershipResults.hasNext()) {
 				Entity membership = membershipResults.next();
-				long losses = (long) membership.getValue("loss").get();
+//				long losses = (long) membership.getValue("loss").get();
 				
+				Key memKey = membership.getKey();
+				String keyStr = String.valueOf(memKey.getNameOrId());
+				if (!loseMap.containsKey(keyStr)) {
+					keyMap.put(memKey, keyStr);
+					winMap.put(keyStr, (long) membership.getValue("win").get());
+					loseMap.put(keyStr, (long) membership.getValue("loss").get());
+					payoutMap.put(keyStr, (long) membership.getValue("bank").get());
+				}
+				
+				long newLosses = loseMap.get(keyStr) + 1;
+				loseMap.put(keyStr, newLosses);
+				
+				/*
 				Entity updatedMembership = Entity.newBuilder(membership).set("loss", losses + 1).build();
 				datastore.update(updatedMembership);
+				*/
 			}
 			// TODO: some form of error handling in case group/user pair cannot be found
 		}

@@ -17,7 +17,6 @@ import com.google.cloud.datastore.QueryResults;
 import com.google.cloud.datastore.StructuredQuery.OrderBy;
 import com.google.cloud.datastore.StructuredQuery.PropertyFilter;
 
-import javabeans.BettorBean;
 import javabeans.GroupBean;
 
 /**
