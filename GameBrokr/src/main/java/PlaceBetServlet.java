@@ -70,6 +70,9 @@ public class PlaceBetServlet extends HttpServlet {
 		}
 		
 		String[] groups = request.getParameterValues("group");
+		if (groups == null) {
+			groups = new String[]{"0"};
+		}
 		
 		for (String group : groups) {
 			if (group.equals("0")) {

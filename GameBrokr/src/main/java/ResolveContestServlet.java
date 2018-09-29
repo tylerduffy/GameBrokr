@@ -258,7 +258,7 @@ public class ResolveContestServlet extends HttpServlet {
 			datastore.update(updatedEntity);
 		}
 		
-		response.sendRedirect("/contests");
+		response.sendRedirect("/contests?sport=" + contest.getString("sport"));
 	}
 	
 	@Override

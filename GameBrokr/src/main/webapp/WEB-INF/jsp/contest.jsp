@@ -170,6 +170,100 @@
 				</form>
 	    	</div>
     	</c:if>
+    	<c:if test = "${!contest.resolved && isAdmin && open}">
+		<div class="newContestForm">
+			<h2>
+			  Update Contest
+			</h2>
+			<form method="POST" action="/updatecontest">
+			<input type="hidden" name="contestid" id="contestid" value="${contest.id}"/>
+			  <div>
+			    <label for="favorite">Favorite </label>
+			    <input type="text" disabled="true" value="${contest.favorite}" name="favorite" id="favorite" class="form-control" required />
+			  </div>
+			  <div>
+			    <label for="dog">Dog </label>
+			    <input type="text" disabled="true" value="${contest.dog}" name="dog" id="dog" class="form-control" required />
+			  </div>
+			  <br>
+			  <div>
+			    <label for="spread">Spread </label>
+			    <c:if test = "${canSpread}" >
+			    <c:if test="${(spreadfavoritepercent + spreaddogpercent) > 0}">
+			    	<!-- gray out this entry -->
+			    	<input type="number" step="0.1" disabled="true" value="${contest.spread}" class="form-control" />
+			    	<input type="hidden" value="${contest.spread}" name="spread" id="spread" />
+			    </c:if>
+			    <c:if test="${!((spreadfavoritepercent + spreaddogpercent) > 0)}">
+			    	<!-- do not gray out this entry -->
+			    	<input type="number" step="0.1" value="${contest.spread}" name="spread" id="spread" class="form-control" />
+			    </c:if>
+			    </c:if>
+			    <c:if test = "${!canSpread}" >
+			    	<input type="number" step="0.1" name="spread" id="spread" class="form-control" />
+			    </c:if>
+			  </div>
+			  <br>
+			  <c:if test="${canMoneyline}" >
+				  <div>
+				    <label for="favline">$ Line (- Fav) </label>
+				    <c:if test="${(moneylinefavoritepercent + moneylinedogpercent) > 0}">
+				    	<!-- gray out this entry -->
+				    	<input type="number" step="0.1" disabled="true" value="${contest.favoriteline}" class="form-control" />
+				    	<input type="hidden" step="0.1" value="${contest.favoriteline}" name="favline" id="favline" />
+				    </c:if>
+				    <c:if test="${!((moneylinefavoritepercent + moneylinedogpercent) > 0)}">
+				    	<!-- do not gray out this entry -->
+				    	<input type="number" step="0.1" value="${contest.favoriteline}" name="favline" id="favline" class="form-control" />
+				    </c:if>
+				  </div>
+				  <div>
+				    <label for="dogline">$ Line (+ Dog) </label>
+				    <c:if test="${(moneylinefavoritepercent + moneylinedogpercent) > 0}">
+				    	<!-- gray out this entry -->
+				    	<input type="number" step="0.1" disabled="true" value="${contest.dogline}" class="form-control" />
+				    	<input type="hidden" step="0.1" value="${contest.dogline}" name="dogline" id="dogline" />
+				    </c:if>
+				    <c:if test="${!((moneylinefavoritepercent + moneylinedogpercent) > 0)}">
+				    	<!-- do not gray out this entry -->
+				    	<input type="number" step="0.1" value="${contest.dogline}" name="dogline" id="dogline" class="form-control" />
+				    </c:if>
+				  </div>
+			  </c:if>
+			  <c:if test="${!canMoneyline}" >
+				  <div>
+				    <label for="favline">$ Line (- Fav) </label>
+				    <input type="number" step="0.1" name="favline" id="favline" class="form-control" />
+				  </div>
+				  <div>
+				    <label for="dogline">$ Line (+ Dog) </label>
+				    <input type="number" step="0.1" name="dogline" id="dogline" class="form-control" />
+				  </div>
+			  </c:if>
+			  <br>
+			  <div>
+			    <label for="overunder">Over/Under </label>
+			    <c:if test="${canOverunder}" >
+			    	<c:if test="${(overpercent + underpercent) > 0}">
+			    		<!-- gray out this entry -->
+			    		<input type="number" step="0.1" disabled="true" value="${contest.overunder}" class="form-control" />
+			    		<input type="hidden" value="${contest.overunder}" name="overunder" id="overunder" />
+			    	</c:if>
+			    	<c:if test="${!((overpercent + underpercent) > 0)}">
+			    		<!-- do not gray out this entry -->
+			    		<input type="number" step="0.1" value="${contest.overunder}" name="overunder" id="overunder" class="form-control" />
+			    	</c:if>
+			    </c:if>
+			    <c:if test="${!canOverunder}" >
+			    	<!-- no existing over/under line -->
+			    	<input type="number" step="0.1" name="overunder" id="overunder" class="form-control" />
+			    </c:if>
+			  </div>
+			  <br>
+			  <button type="submit"> Update </button>
+			</form>
+	    </div>
+	    </c:if>
     	
     	<div class="tables">
     		<c:if test="${!((spreadfavoritepercent + spreaddogpercent) > 0)}">
